@@ -12,6 +12,26 @@ use PHPUnit\Framework\TestCase;
  */
 class ArrTest extends TestCase
 {
+    public function testColumn()
+    {
+        $data = [
+            new TestColumn('foo', 'bar'),
+            new TestColumn('hello', 'world'),
+            ['id' => '5', 'value' => 'asdf'],
+        ];
+
+        $result = Arr::column($data, 'id');
+        $this->assertEquals(['foo', 'hello', '5'], $result);
+
+        $result = Arr::column($data, 'value', 'id');
+        $expected = [
+            'foo'   => 'bar',
+            'hello' => 'world',
+            '5'     => 'asdf',
+        ];
+        $this->assertEquals($expected, $result);
+    }
+
     public function provideIsIndexed()
     {
         return [
@@ -94,5 +114,27 @@ class ArrTest extends TestCase
     public function testReplaceRecursive($array1, $array2, $result)
     {
         $this->assertEquals($result, Arr::replaceRecursive($array1, $array2));
+    }
+}
+
+class TestColumn
+{
+    public $id;
+    private $value;
+
+    public function __construct($id, $value)
+    {
+        $this->id = $id;
+        $this->value = $value;
+    }
+
+    public function __isset($name)
+    {
+        return $name === 'value';
+    }
+
+    public function __get($name)
+    {
+        return $this->value;
     }
 }
