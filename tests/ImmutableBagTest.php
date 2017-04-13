@@ -269,6 +269,17 @@ class ImmutableBagTest extends TestCase
         $this->assertEquals(['foo' => 'bar'], $mutable->toArray());
     }
 
+    public function testImmutable()
+    {
+        $bag = new Bag(['foo', 'bar']);
+
+        $immutable = $bag->immutable();
+
+        $this->assertNotSame($bag, $immutable);
+        $this->assertInstanceOf(ImmutableBag::class, $immutable);
+        $this->assertEquals(['foo', 'bar'], $immutable->toArray());
+    }
+
     public function testKeys()
     {
         $bag = new ImmutableBag(['foo' => 'bar', 'hello' => 'world']);

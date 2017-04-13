@@ -363,6 +363,16 @@ class ImmutableBag implements ArrayAccess, Countable, IteratorAggregate
     }
 
     /**
+     * Returns an immutable bag with the items from this bag.
+     *
+     * @return ImmutableBag
+     */
+    public function immutable()
+    {
+        return new ImmutableBag($this->items);
+    }
+
+    /**
      * Returns a bag with all the keys of the items.
      *
      * @return static

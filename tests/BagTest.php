@@ -4,22 +4,10 @@ namespace Bolt\Collection\Tests;
 
 use ArrayObject;
 use Bolt\Collection\Bag;
-use Bolt\Collection\ImmutableBag;
 use PHPUnit_Framework_TestCase as TestCase;
 
 class BagTest extends TestCase
 {
-    public function testImmutable()
-    {
-        $bag = new Bag(['foo', 'bar']);
-
-        $immutable = $bag->immutable();
-
-        $this->assertNotSame($bag, $immutable);
-        $this->assertInstanceOf(ImmutableBag::class, $immutable);
-        $this->assertEquals(['foo', 'bar'], $immutable->toArray());
-    }
-
     public function testAdd()
     {
         $bag = new Bag();

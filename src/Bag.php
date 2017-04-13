@@ -12,16 +12,6 @@ namespace Bolt\Collection;
  */
 class Bag extends ImmutableBag
 {
-    /**
-     * Returns an immutable bag with the items from this bag.
-     *
-     * @return ImmutableBag
-     */
-    public function immutable()
-    {
-        return new ImmutableBag($this->items);
-    }
-
     // region Mutating Methods
 
     /**
