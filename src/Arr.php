@@ -35,7 +35,19 @@ class Arr
 
         foreach ($input as $row) {
             $key = $value = null;
-            $keySet = $valueSet = false;
+            $keySet = false;
+
+            if ($columnKey === null) {
+                $value = $row;
+            } elseif (is_array($row) && array_key_exists($columnKey, $row)) {
+                $value = $row[$columnKey];
+            } elseif ($row instanceof ArrayAccess && isset($row[$columnKey])) {
+                $value = $row[$columnKey];
+            } elseif (is_object($row) && isset($row->{$columnKey})) {
+                $value = $row->{$columnKey};
+            } else {
+                continue;
+            }
 
             if ($indexKey !== null) {
                 /*
@@ -55,26 +67,10 @@ class Arr
                 }
             }
 
-            if ($columnKey === null) {
-                $valueSet = true;
-                $value = $row;
-            } elseif (is_array($row) && array_key_exists($columnKey, $row)) {
-                $valueSet = true;
-                $value = $row[$columnKey];
-            } elseif ($row instanceof ArrayAccess && isset($row[$columnKey])) {
-                $valueSet = true;
-                $value = $row[$columnKey];
-            } elseif (is_object($row) && isset($row->{$columnKey})) {
-                $valueSet = true;
-                $value = $row->{$columnKey};
-            }
-
-            if ($valueSet) {
-                if ($keySet) {
-                    $output[$key] = $value;
-                } else {
-                    $output[] = $value;
-                }
+            if ($keySet) {
+                $output[$key] = $value;
+            } else {
+                $output[] = $value;
             }
         }
 
