@@ -14,20 +14,27 @@ class ArrTest extends TestCase
 {
     public function testColumn()
     {
-        $data = [
+        $data = new \ArrayIterator([
             new TestColumn('foo', 'bar'),
             new TestColumn('hello', 'world'),
             ['id' => '5', 'value' => 'asdf'],
-        ];
+            new \ArrayObject(['id' => '6', 'value' => 'blue']),
+            ['value' => 'no key is appended'], // skipped if missing column key. Appended if missing index key.
+        ]);
+
+        $result = Arr::column($data, null);
+        $this->assertEquals($data->getArrayCopy(), $result);
 
         $result = Arr::column($data, 'id');
-        $this->assertEquals(['foo', 'hello', '5'], $result);
+        $this->assertEquals(['foo', 'hello', '5', '6'], $result);
 
         $result = Arr::column($data, 'value', 'id');
         $expected = [
             'foo'   => 'bar',
             'hello' => 'world',
             '5'     => 'asdf',
+            '6'     => 'blue',
+            7       => 'no key is appended',
         ];
         $this->assertEquals($expected, $result);
     }

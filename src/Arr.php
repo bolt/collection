@@ -21,19 +21,15 @@ class Arr
      * Optionally, an $indexKey may be provided to index the values in the returned array by the
      * values from the $indexKey column in the input array.
      *
-     * This supports objects which was added in PHP 7.0. This method can be dropped when support for PHP 5.x is dropped.
-     *
-     * @param array           $input A list of arrays or objects from which to pull a column of values.
-     * @param string|int      $columnKey The column of values to return.
-     * @param string|int|null $indexKey The column to use as the index/keys for the returned array.
+     * @param Traversable|array $input A list of arrays or objects from which to pull a column of values.
+     * @param string|int        $columnKey The column of values to return.
+     * @param string|int|null   $indexKey The column to use as the index/keys for the returned array.
      *
      * @return array
      */
-    public static function column(array $input, $columnKey, $indexKey = null)
+    public static function column($input, $columnKey, $indexKey = null)
     {
-        if (PHP_MAJOR_VERSION > 5) {
-            return array_column($input, $columnKey, $indexKey);
-        }
+        Assert::isTraversable($input);
 
         $output = [];
 
@@ -42,7 +38,15 @@ class Arr
             $keySet = $valueSet = false;
 
             if ($indexKey !== null) {
+                /*
+                 * For arrays, we use array_key_exists because isset returns false for keys that exist with null values.
+                 * For ArrayAccess we assume devs are smarter and don't have this edge case. Regardless, we don't have
+                 * another way to check so it's up to them.
+                 */
                 if (is_array($row) && array_key_exists($indexKey, $row)) {
+                    $keySet = true;
+                    $key = (string) $row[$indexKey];
+                } elseif ($row instanceof ArrayAccess && isset($row[$indexKey])) {
                     $keySet = true;
                     $key = (string) $row[$indexKey];
                 } elseif (is_object($row) && isset($row->{$indexKey})) {
@@ -55,6 +59,9 @@ class Arr
                 $valueSet = true;
                 $value = $row;
             } elseif (is_array($row) && array_key_exists($columnKey, $row)) {
+                $valueSet = true;
+                $value = $row[$columnKey];
+            } elseif ($row instanceof ArrayAccess && isset($row[$columnKey])) {
                 $valueSet = true;
                 $value = $row[$columnKey];
             } elseif (is_object($row) && isset($row->{$columnKey})) {

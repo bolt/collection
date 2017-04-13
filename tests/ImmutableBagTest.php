@@ -575,10 +575,14 @@ class ImmutableBagTest extends TestCase
 
     public function testOffsetExists()
     {
-        $bag = new ImmutableBag(['foo' => 'bar']);
+        $arr = ['foo' => 'bar', 'null' => null];
+        $bag = new ImmutableBag($arr);
 
         $this->assertTrue(isset($bag['foo']));
+        $this->assertTrue(isset($bag['null'])); // doesn't have PHPs stupid edge case.
         $this->assertFalse(isset($bag['derp']));
+
+        $this->assertFalse(isset($arr['null'])); // just why PHP, why!
     }
 
     public function testOffsetGet()
