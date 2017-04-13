@@ -1,0 +1,29 @@
+{
+    "name": "bolt/collection",
+    "description": "Object Orientated implementations of various collections",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Carson Full",
+            "email": "carsonfull@gmail.com"
+        }
+    ],
+    "require": {
+        "php": "^5.5 || ^7.0",
+        "symfony/polyfill-php71": "^1.3",
+        "webmozart/assert": "^1.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^4.8"
+    },
+    "autoload": {
+        "psr-4": {
+            "Bolt\\Collection\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Bolt\\Collection\\Tests\\": "tests"
+        }
+    }
+}
