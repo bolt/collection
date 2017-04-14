@@ -864,6 +864,166 @@ class ImmutableBag implements ArrayAccess, Countable, IteratorAggregate, JsonSer
 
     // endregion
 
+    // region Comparison Methods
+
+    /**
+     * Computes the difference of the given collection using values for comparison.
+     *
+     * The order is determined by the first array.
+     *
+     * @param iterable      $collection Collection to check against
+     * @param callable|null $comparator Optional three-way comparison function
+     *
+     * @return static A bag containing all the items from this bag that ARE NOT present in the given collection
+     */
+    public function diff($collection, callable $comparator = null)
+    {
+        return $this->doCompare($collection, 'array_diff', 'array_udiff', $comparator);
+    }
+
+    /**
+     * This method is like {@see diff} except that it accepts an $iteratee which is invoked for each item
+     * to generate the criterion by which they're compared.
+     *
+     * @param iterable $collection Collection to check against
+     * @param callable $iteratee   Function is passed ($value)
+     *
+     * @return static
+     */
+    public function diffBy($collection, callable $iteratee)
+    {
+        return $this->diff($collection, $this->iterateeToComparator($iteratee));
+    }
+
+    /**
+     * Computes the difference of the given collection using keys for comparison.
+     *
+     * The order is determined by the first array.
+     *
+     * @param iterable      $collection Collection to check against
+     * @param callable|null $comparator Optional three-way comparison function
+     *
+     * @return static A bag containing all the items from this bag whose keys ARE NOT present in the given collection
+     */
+    public function diffKeys($collection, callable $comparator = null)
+    {
+        return $this->doCompare($collection, 'array_diff_key', 'array_diff_ukey', $comparator);
+    }
+
+    /**
+     * This method is like {@see diffKeys} except that it accepts an $iteratee which is invoked for each item
+     * to generate the criterion by which they're compared.
+     *
+     * @param iterable $collection Collection to check against
+     * @param callable $iteratee   Function is passed ($value)
+     *
+     * @return static
+     */
+    public function diffKeysBy($collection, callable $iteratee)
+    {
+        return $this->diffKeys($collection, $this->iterateeToComparator($iteratee));
+    }
+
+    /**
+     * Computes the intersection of the given collection using values for comparison.
+     *
+     * @param iterable      $collection Collection to check against
+     * @param callable|null $comparator Optional three-way comparison function
+     *
+     * @return static A bag containing all the items from this bag that ARE present in the given collection
+     */
+    public function intersect($collection, callable $comparator = null)
+    {
+        return $this->doCompare($collection, 'array_intersect', 'array_uintersect', $comparator);
+    }
+
+    /**
+     * This method is like {@see intersect} except that it accepts an $iteratee which is invoked for each item
+     * to generate the criterion by which they're compared.
+     *
+     * @param iterable $collection Collection to check against
+     * @param callable $iteratee   Function is passed ($value)
+     *
+     * @return static
+     */
+    public function intersectBy($collection, callable $iteratee)
+    {
+        return $this->intersect($collection, $this->iterateeToComparator($iteratee));
+    }
+
+    /**
+     * Computes the intersection of the given collection using keys for comparison.
+     *
+     * @param iterable      $collection Collection to check against
+     * @param callable|null $comparator Optional three-way comparison function
+     *
+     * @return static A bag containing all the items from this bag whose keys ARE present in the given collection
+     */
+    public function intersectKeys($collection, callable $comparator = null)
+    {
+        return $this->doCompare($collection, 'array_intersect_key', 'array_intersect_ukey', $comparator);
+    }
+
+    /**
+     * This method is like {@see diffKeys} except that it accepts an $iteratee which is invoked for each item
+     * to generate the criterion by which they're compared.
+     *
+     * @param iterable $collection Collection to check against
+     * @param callable $iteratee   Function is passed ($value)
+     *
+     * @return static
+     */
+    public function intersectKeysBy($collection, callable $iteratee)
+    {
+        return $this->intersectKeys($collection, $this->iterateeToComparator($iteratee));
+    }
+
+    /**
+     * Do comparison with $func, or with $funcUser if $comparator is given.
+     *
+     * @param iterable      $collection
+     * @param callable      $func
+     * @param callable      $funcUser
+     * @param callable|null $comparator
+     *
+     * @return static
+     */
+    private function doCompare($collection, callable $func, callable $funcUser, callable $comparator = null)
+    {
+        if ($comparator) {
+            return $this->createFrom($funcUser($this->items, Arr::from($collection), $comparator));
+        }
+
+        return $this->createFrom($func($this->items, Arr::from($collection)));
+    }
+
+    /**
+     * Returns a comparison function that calls the given $iteratee function
+     * for both values being compared before comparing them.
+     *
+     * @param callable $iteratee
+     *
+     * @return \Closure
+     */
+    private function iterateeToComparator(callable $iteratee)
+    {
+        return function ($a, $b) use ($iteratee) {
+            // PHP 7.0
+            // return $iteratee($a) <=> $iteratee($b);
+
+            $a = $iteratee($a);
+            $b = $iteratee($b);
+
+            if ($a === $b) {
+                return 0;
+            }
+
+            return $a > $b ? 1 : -1;
+        };
+    }
+
+    // endregion
+
     // region Sorting Methods
 
     /**
