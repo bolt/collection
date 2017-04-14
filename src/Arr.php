@@ -202,47 +202,40 @@ class Arr
             return;
         }
 
-        $invalidKey = []; // array so it can be modified after being passed by reference to error handler closure.
-        $prev = set_error_handler('var_dump');
-        restore_error_handler();
-        set_error_handler(function ($type, $message, $file, $line) use ($prev, $path, &$invalidKey) {
-            $regex = '/Indirect modification of overloaded element of ([\w\\\\]+) has no effect/';
-            if (preg_match($regex, $message, $matches)) {
+        $invalidKey = null;
+        $current =& $data;
+        while (null !== ($key = array_shift($queue))) {
+            if (!is_array($current) && !($current instanceof ArrayAccess)) {
                 throw new RuntimeException(
-                    "Cannot to set \"$path\", because \"{$invalidKey['key']}\" is an {$matches[1]} which has not " .
-                    "defined its offsetGet() method as return by reference."
+                    "Cannot set '$path', because '$invalidKey' is already set and not an array " .
+                    "or an object implementing ArrayAccess."
                 );
-            } elseif ($prev) {
-                return call_user_func($prev, $type, $message, $file, $line);
-            } else {
-                // return false to let PHP handle error
-                return false;
-            }
-        });
-        try {
-            $current =& $data;
-            while (null !== ($key = array_shift($queue))) {
-                if (!is_array($current) && !($current instanceof ArrayAccess)) {
-                    throw new RuntimeException(
-                        "Cannot set \"$path\", because \"{$invalidKey['key']}\" is already set and not an array " .
-                        "or an object implementing ArrayAccess."
-                    );
-                } elseif (!$queue) {
-                    if ($key === '[]') {
-                        $current[] = $value;
-                    } else {
-                        $current[$key] = $value;
-                    }
-                } elseif (isset($current[$key])) {
-                    $current =& $current[$key];
+            } elseif (!$queue) {
+                if ($key === '[]') {
+                    $current[] = $value;
                 } else {
-                    $current[$key] = [];
-                    $current =& $current[$key];
+                    $current[$key] = $value;
                 }
-                $invalidKey['key'] = $key;
+            } elseif (isset($current[$key])) {
+                $current =& $current[$key];
+            } else {
+                if (!static::canReturnArraysByReference($current)) {
+                    $class = get_class($current);
+                    throw new RuntimeException(
+                        sprintf(
+                            "Cannot set '%s', because '%s' is an %s which does not return arrays " .
+                            "by reference from its offsetGet() method. See %s for an example of how to do this.",
+                            $path,
+                            $invalidKey,
+                            $class,
+                            Bag::class
+                        )
+                    );
+                }
+                $current[$key] = [];
+                $current =& $current[$key];
             }
-        } finally {
-            restore_error_handler();
+            $invalidKey = $key;
         }
     }
 
@@ -360,6 +353,66 @@ class Arr
         }
 
         return $merged;
+    }
+
+    /**
+     * Determine whether the array/object can return arrays by reference.
+     *
+     * @param ArrayAccess|array $obj
+     *
+     * @return bool
+     */
+    private static function canReturnArraysByReference($obj)
+    {
+        if (is_array($obj)) {
+            return true;
+        }
+
+        static $supportedClasses = [];
+
+        $class = get_class($obj);
+        if (isset($supportedClasses[$class])) {
+            return $supportedClasses[$class];
+        }
+
+        $testKey = '__reference_test';
+        $obj[$testKey] = [];
+        if (!defined('HHVM_VERSION')) {
+            $prev = set_error_handler('var_dump');
+            restore_error_handler();
+            set_error_handler(function ($type, $message, $file, $line) use ($prev, &$supportedClasses) {
+                $regex = '/Indirect modification of overloaded element of ([\w\\\\]+) has no effect/';
+                if (preg_match($regex, $message, $matches)) {
+                    $supportedClasses[$matches[1]] = false;
+                } elseif ($prev) {
+                    return call_user_func($prev, $type, $message, $file, $line);
+                } else {
+                    // return false to let PHP handle error
+                    return false;
+                }
+            });
+            try {
+                $test =& $obj[$testKey];
+                if (!isset($supportedClasses[$class])) {
+                    $supportedClasses[$class] = true;
+                }
+            } finally {
+                restore_error_handler();
+            }
+        } else {
+            $test1 =& $obj[$testKey];
+            $test2 =& $obj[$testKey];
+            $test1[$testKey] = 'test';
+            if ($test1 === $test2) {
+                $supportedClasses[$class] = true;
+                unset($test1[$testKey]);
+            } else {
+                $supportedClasses[$class] = false;
+            }
+        }
+        unset($obj[$testKey]);
+
+        return $supportedClasses[$class];
     }
 
     /**

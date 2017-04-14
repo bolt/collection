@@ -3,6 +3,7 @@
 namespace Bolt\Collection\Tests;
 
 use Bolt\Collection\Arr;
+use Bolt\Collection\Bag;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -188,7 +189,8 @@ class ArrTest extends TestCase
 
     /**
      * @expectedException \RuntimeException
-     * @expectedExceptionMessage Cannot set "a/foo", because "a" is already set and not an array or an object implementing ArrayAccess.
+     * @expectedExceptionMessage Cannot set 'a/foo', because 'a' is already set and not
+     *                           an array or an object implementing ArrayAccess.
      */
     public function testSetNestedInaccessibleObject()
     {
@@ -240,10 +242,19 @@ class ArrTest extends TestCase
             $this->assertSame($expectedErrorHandler, $actualErrorHandler, $message);
         }
 
-        $this->assertEquals([[E_USER_NOTICE, 'Some notice']], $errors->getArrayCopy(), 'Arr::set did not call previous error handler for non indirect modification errors');
+        $this->assertArraySubset(
+            [[E_USER_NOTICE, 'Some notice']],
+            $errors->getArrayCopy(),
+            'Arr::set did not call previous error handler for non indirect modification errors'
+        );
 
         if ($e instanceof \RuntimeException) {
-            $this->assertEquals('Cannot to set "a/foo/bar", because "a" is an Bolt\Collection\Tests\TestBadArrayLike which has not defined its offsetGet() method as return by reference.', $e->getMessage());
+            $this->assertEquals(
+                "Cannot set 'a/foo/bar', because 'a' is an " . TestBadArrayLike::class .
+                ' which does not return arrays by reference from its offsetGet() method. See ' . Bag::class .
+                ' for an example of how to do this.',
+                $e->getMessage()
+            );
         } else {
             $this->fail("Arr::set should've thrown a RuntimeException");
         }
@@ -401,8 +412,6 @@ class TestArrayLike implements \ArrayAccess
 
     public function offsetExists($offset)
     {
-        @trigger_error('Some notice', E_USER_NOTICE);
-
         return isset($this->items[$offset]);
     }
 
@@ -430,6 +439,8 @@ class TestBadArrayLike extends TestArrayLike
 {
     public function offsetGet($offset) // Note no "&"
     {
+        @trigger_error('Some notice', E_USER_NOTICE);
+
         return $this->items[$offset];
     }
 }
