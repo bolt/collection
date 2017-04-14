@@ -595,6 +595,11 @@ class ImmutableBagTest extends TestCase
 
     public function testOffsetGetByReference()
     {
+        if (defined('HHVM_VERSION')) {
+            $this->markTestSkipped('HHVM does not trigger indirect modification notice.');
+            // we also don't know if it's being asked for by reference to throw an exception.
+        }
+
         $bag = new ImmutableBag(['arr' => ['1']]);
 
         // Assert arrays are not able to be modified by reference.
