@@ -945,6 +945,143 @@ class ImmutableBagTest extends TestCase
 
     // region Sorting Methods
 
+    public function testSortValuesAsc()
+    {
+        $bag = $this->createBag([4, 'hi' => 3, 1, 2]);
+
+        $sorted = $bag->sort();
+
+        $this->assertBagResult([1, 2, 3, 4], $bag, $sorted);
+    }
+
+    public function testSortValuesAscNaturalIgnoreCase()
+    {
+        $bag = $this->createBag(
+            [
+                'img12.png',
+                'img1.png',
+                'iMg2.png',
+                'img10.png',
+            ]
+        );
+
+        $sorted = $bag->sort(SORT_ASC, SORT_NATURAL | SORT_FLAG_CASE);
+
+        $expected = [
+            'img1.png',
+            'iMg2.png',
+            'img10.png',
+            'img12.png',
+        ];
+        $this->assertBagResult($expected, $bag, $sorted);
+    }
+
+    public function testSortValuesAscPreserveKeys()
+    {
+        $bag = $this->createBag(['a' => 4, 'b' => 3, 'c' => 1, 'd' => 2]);
+
+        $sorted = $bag->sort(SORT_ASC, SORT_REGULAR, true);
+
+        $this->assertBagResult(['c' => 1, 'd' => 2, 'b' => 3, 'a' => 4], $bag, $sorted);
+    }
+
+    public function testSortValuesDesc()
+    {
+        $bag = $this->createBag([4, 'hi' => 3, 1, 2]);
+
+        $sorted = $bag->sort(SORT_DESC);
+
+        $this->assertBagResult([4, 3, 2, 1], $bag, $sorted);
+    }
+
+    public function testSortValuesDescPreserveKeys()
+    {
+        $bag = $this->createBag(['a' => 4, 'b' => 3, 'c' => 1, 'd' => 2]);
+
+        $sorted = $bag->sort(SORT_DESC, SORT_REGULAR, true);
+
+        $this->assertBagResult(['a' => 4, 'b' => 3, 'd' => 2, 'c' => 1], $bag, $sorted);
+    }
+
+    public function testSortValuesWithComparator()
+    {
+        $bag = $this->createBag(['blue', 'red', 'black']);
+
+        $sorted = $bag->sortWith(
+            function ($a, $b) {
+                $a = $a[0];
+                $b = $b[0];
+
+                if ($a === $b) {
+                    return 0;
+                }
+
+                return $a > $b ? 1 : -1;
+            }
+        );
+
+        $this->assertBagResult(['blue', 'black', 'red'], $bag, $sorted);
+    }
+
+    public function testSortValuesWithComparatorPreserveKeys()
+    {
+        $bag = $this->createBag(['blue', 'red', 'black']);
+
+        $sorted = $bag->sortWith(
+            function ($a, $b) {
+                $a = $a[0];
+                $b = $b[0];
+
+                if ($a === $b) {
+                    return 0;
+                }
+
+                return $a > $b ? 1 : -1;
+            },
+            true
+        );
+
+        $this->assertBagResult([0 => 'blue', 2 => 'black', 1 => 'red'], $bag, $sorted);
+    }
+
+    public function testSortKeysAsc()
+    {
+        $bag = $this->createBag(['c' => 1, 'd' => 2, 'b' => 3, 'a' => 4]);
+
+        $sorted = $bag->sortKeys();
+
+        $this->assertBagResult(['a' => 4, 'b' => 3, 'c' => 1, 'd' => 2], $bag, $sorted);
+    }
+
+    public function testSortKeysDesc()
+    {
+        $bag = $this->createBag(['c' => 1, 'd' => 2, 'b' => 3, 'a' => 4]);
+
+        $sorted = $bag->sortKeys(SORT_DESC);
+
+        $this->assertBagResult(['d' => 2, 'c' => 1, 'b' => 3, 'a' => 4], $bag, $sorted);
+    }
+
+    public function testSortKeysWithComparator()
+    {
+        $bag = $this->createBag(['blue' => 'a', 'red' => 'b', 'black' => 'c']);
+
+        $sorted = $bag->sortKeysWith(
+            function ($a, $b) {
+                $a = $a[0];
+                $b = $b[0];
+
+                if ($a === $b) {
+                    return 0;
+                }
+
+                return $a > $b ? 1 : -1;
+            }
+        );
+
+        $this->assertBagResult(['blue' => 'a', 'black' => 'c', 'red' => 'b'], $bag, $sorted);
+    }
+
     public function testReverse()
     {
         $bag = $this->createBag(['a', 'b', 'c', 'd']);
