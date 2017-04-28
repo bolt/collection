@@ -7,6 +7,7 @@ use BadMethodCallException;
 use Countable;
 use InvalidArgumentException;
 use IteratorAggregate;
+use JsonSerializable;
 use RuntimeException;
 use stdClass;
 use Traversable;
@@ -18,7 +19,7 @@ use Traversable;
  *
  * @author Carson Full <carsonfull@gmail.com>
  */
-class ImmutableBag implements ArrayAccess, Countable, IteratorAggregate
+class ImmutableBag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
 {
     /** @var array */
     protected $items;
@@ -711,6 +712,18 @@ class ImmutableBag implements ArrayAccess, Countable, IteratorAggregate
     public function getIterator()
     {
         return new \ArrayIterator($this->items);
+    }
+
+    /**
+     * Don't call directly. Used for JsonSerializable.
+     *
+     * @internal
+     *
+     * @inheritdoc
+     */
+    public function jsonSerialize()
+    {
+        return $this->items;
     }
 
     /**

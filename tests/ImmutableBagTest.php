@@ -573,6 +573,13 @@ class ImmutableBagTest extends TestCase
         $this->assertEquals(['a', 'b', 'c', 'd'], iterator_to_array($bag));
     }
 
+    public function testJsonSerializable()
+    {
+        $bag = new ImmutableBag(['a', 'b', 'c']);
+
+        $this->assertEquals('["a","b","c"]', json_encode($bag));
+    }
+
     public function testOffsetExists()
     {
         $arr = ['foo' => 'bar', 'null' => null];
