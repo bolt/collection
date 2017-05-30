@@ -347,6 +347,17 @@ class ImmutableBagTest extends TestCase
         $this->assertBagResult([0 => 'foo', 3 => 'world'], $bag, $actual);
     }
 
+    public function testReject()
+    {
+        $bag = $this->createBag(['foo', 'bar', 'hello', 'world']);
+
+        $actual = $bag->reject(function ($key, $item) {
+            return $item !== 'bar' && $key !== 2;
+        });
+
+        $this->assertBagResult([1 => 'bar', 2 => 'hello'], $bag, $actual);
+    }
+
     public function testClean()
     {
         $bag = $this->createBag([null, '', 'foo', false, 0, true, [], ['bar']]);
