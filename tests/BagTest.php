@@ -19,6 +19,15 @@ class BagTest extends TestCase
 
     // region Creation / Unwrapping Methods
 
+    public function testOf()
+    {
+        /** @var Bag $cls */
+        $cls = $this->cls;
+        $bag = $cls::of('red', 'blue', []);
+
+        $this->assertSame(['red', 'blue', []], $bag->toArray());
+    }
+
     public function provideFromAndToArray()
     {
         return [

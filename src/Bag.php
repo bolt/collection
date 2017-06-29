@@ -37,6 +37,18 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
     }
 
     /**
+     * Creates a list from the arguments given.
+     *
+     * @param ...mixed $items
+     *
+     * @return static
+     */
+    public static function of()
+    {
+        return new static(func_get_args());
+    }
+
+    /**
      * Create a bag from a variety of collections.
      *
      * @param iterable|stdClass|null $collection
