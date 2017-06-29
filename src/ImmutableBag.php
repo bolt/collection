@@ -611,7 +611,7 @@ class ImmutableBag implements ArrayAccess, Countable, IteratorAggregate, JsonSer
     public function flip()
     {
         $arr = array_flip($this->items);
-        if (!$arr) {
+        if ($arr === null) {
             throw new RuntimeException('Failed to flip the items.');
         }
 
