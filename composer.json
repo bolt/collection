@@ -14,6 +14,9 @@
         "webmozart/assert": "^1.0"
     },
     "require-dev": {
+        "bolt/codingstyle": "^2.0@dev",
+        "escapestudios/symfony2-coding-standard": "^3.0@dev",
+        "friendsofphp/php-cs-fixer": "^2.4",
         "phpunit/phpunit": "^4.8",
         "symfony/phpunit-bridge": "^3.3"
     },
@@ -25,6 +28,18 @@
     "autoload-dev": {
         "psr-4": {
             "Bolt\\Collection\\Tests\\": "tests"
+        }
+    },
+    "scripts": {
+        "test": "phpunit",
+        "lint": [
+            "phpcbf",
+            "php-cs-fixer fix"
+        ]
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "1.x-dev"
         }
     }
 }

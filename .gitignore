@@ -1,2 +1,7 @@
 composer.lock
 /vendor/
+
+/.php_cs
+/.php_cs.cache
+/phpcs.xml
+/phpunit.xml
