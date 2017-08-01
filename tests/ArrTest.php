@@ -279,6 +279,9 @@ class ArrTest extends TestCase
         $this->assertFalse(Arr::isAccessible(new \EmptyIterator()));
     }
 
+    /**
+     * @group legacy
+     */
     public function testAssertAccessible()
     {
         $e = null;
@@ -293,8 +296,9 @@ class ArrTest extends TestCase
     }
 
     /**
+     * @group legacy
      * @expectedException \InvalidArgumentException
-     * @expectedExceptionMessage Expected an array or an object implementing ArrayAccess. Got: EmptyIterator
+     * @expectedExceptionMessage Expected an array accessible. Got: EmptyIterator
      */
     public function testAssertAccessibleFail()
     {
