@@ -38,8 +38,8 @@ class ImmutableBagTest extends TestCase
     public function testFromRecursive()
     {
         $a = [
-            'foo' => 'bar',
-            'items' => new ArrayObject(['hello' => 'world']),
+            'foo'       => 'bar',
+            'items'     => new ArrayObject(['hello' => 'world']),
             'std class' => json_decode(json_encode([
                 'why use' => 'these',
             ])),
@@ -64,14 +64,14 @@ class ImmutableBagTest extends TestCase
     public function testToArrayRecursive()
     {
         $bag = new ImmutableBag([
-            'foo' => 'bar',
+            'foo'    => 'bar',
             'colors' => new ImmutableBag(['red', 'blue']),
-            'array' => ['hello', 'world'],
+            'array'  => ['hello', 'world'],
         ]);
         $expected = [
-            'foo' => 'bar',
+            'foo'    => 'bar',
             'colors' => ['red', 'blue'],
-            'array' => ['hello', 'world'],
+            'array'  => ['hello', 'world'],
         ];
 
         $arr = $bag->toArrayRecursive();
@@ -83,7 +83,7 @@ class ImmutableBagTest extends TestCase
     {
         $actual = ImmutableBag::combine(['red', 'green'], ['bad', 'good'])->toArray();
         $expected = [
-            'red' => 'bad',
+            'red'   => 'bad',
             'green' => 'good',
         ];
 
@@ -137,7 +137,7 @@ class ImmutableBagTest extends TestCase
     {
         $foo = new ArrayObject();
         $bag = new ImmutableBag([
-            'foo' => 'bar',
+            'foo'   => 'bar',
             'items' => $foo,
         ]);
 
@@ -150,7 +150,7 @@ class ImmutableBagTest extends TestCase
     public function testGet()
     {
         $bag = new ImmutableBag([
-            'foo' => 'bar',
+            'foo'  => 'bar',
             'null' => null,
         ]);
 
@@ -402,13 +402,13 @@ class ImmutableBagTest extends TestCase
     public function provideSlice()
     {
         return [
-            [ 0, null, false, ['foo', 'bar', 'hello', 'world']],
-            [ 1, null, false, [       'bar', 'hello', 'world']],
-            [ 1,    2, false, [       'bar', 'hello'         ]],
-            [-2, null, false, [              'hello', 'world']],
-            [ 1,   -1, false, [       'bar', 'hello'         ]],
-            [-2,   -1, false, [              'hello'         ]],
-            [ 1,    2,  true, [1 => 'bar', 2 => 'hello']],
+            [0,  null, false, ['foo', 'bar', 'hello', 'world']],
+            [1,  null, false,        ['bar', 'hello', 'world']],
+            [1,     2, false,        ['bar', 'hello']],
+            [-2, null, false,               ['hello', 'world']],
+            [1,    -1, false,        ['bar', 'hello']],
+            [-2,   -1, false,               ['hello']],
+            [1,     2,  true, [1 => 'bar', 2 => 'hello']],
         ];
     }
 
@@ -437,7 +437,7 @@ class ImmutableBagTest extends TestCase
             return strpos($item, 'a') !== false;
         });
 
-        $this->assertTrue(is_array($actual));
+        $this->assertInternalType('array', $actual);
         $this->assertCount(2, $actual);
 
         list($trueBag, $falseBag) = $actual;
@@ -486,7 +486,7 @@ class ImmutableBagTest extends TestCase
     {
         $bag = new ImmutableBag(['foo', 'bar', 'foo', 3, '3', '3a', '3']);
         $actual = $bag->unique();
-        $this->assertBagResult(['foo', 'bar', 3 , '3', '3a'], $bag, $actual);
+        $this->assertBagResult(['foo', 'bar', 3, '3', '3a'], $bag, $actual);
 
         $first = new ImmutableBag();
         $second = new ImmutableBag();

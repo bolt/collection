@@ -72,9 +72,12 @@ class ImmutableBag implements ArrayAccess, Countable, IteratorAggregate, JsonSer
     {
         $keys = static::normalize($keys);
         $values = static::normalize($values);
+
         if (count($keys) !== count($values)) {
             throw new InvalidArgumentException('The size of keys and values needs to be the same.');
-        } elseif (count($keys) === 0) {
+        }
+
+        if (count($keys) === 0) {
             return new static();
         }
 
@@ -117,7 +120,7 @@ class ImmutableBag implements ArrayAccess, Countable, IteratorAggregate, JsonSer
     }
 
     /**
-     * Normalize input to an array
+     * Normalize input to an array.
      *
      * @param Traversable|array|stdClass $collection
      *
@@ -127,17 +130,21 @@ class ImmutableBag implements ArrayAccess, Countable, IteratorAggregate, JsonSer
     {
         if ($collection instanceof static) {
             return $collection->toArray();
-        } elseif ($collection instanceof Traversable) {
-            return iterator_to_array($collection, true);
-        } elseif ($collection === null) {
-            return [];
-        } elseif ($collection instanceof stdClass) {
-            return get_object_vars($collection);
-        } elseif (is_array($collection)) {
-            return $collection;
-        } else {
-            return [$collection];
         }
+        if ($collection instanceof Traversable) {
+            return iterator_to_array($collection, true);
+        }
+        if ($collection === null) {
+            return [];
+        }
+        if ($collection instanceof stdClass) {
+            return get_object_vars($collection);
+        }
+        if (is_array($collection)) {
+            return $collection;
+        }
+
+        return [$collection];
     }
 
     /**
@@ -159,9 +166,10 @@ class ImmutableBag implements ArrayAccess, Countable, IteratorAggregate, JsonSer
         }
 
         if (!$bag) {
-            /** @noinspection PhpIncompatibleReturnTypeInspection */
+            /* @noinspection PhpIncompatibleReturnTypeInspection */
             return $collection;
         }
+
         return new static($collection);
     }
 
@@ -264,9 +272,9 @@ class ImmutableBag implements ArrayAccess, Countable, IteratorAggregate, JsonSer
      * that means not only the value but also the type must match.
      * For objects this means reference equality.
      *
-     * @param mixed $item The item to search for.
+     * @param mixed $item The item to search for
      *
-     * @return int|string|false The index or key of the item or false if the item was not found.
+     * @return int|string|false The index or key of the item or false if the item was not found
      */
     public function indexOf($item)
     {
@@ -298,7 +306,7 @@ class ImmutableBag implements ArrayAccess, Countable, IteratorAggregate, JsonSer
      *
      * @param string $separator The term to join on
      *
-     * @return string A string representation of all the items with the separator between them.
+     * @return string A string representation of all the items with the separator between them
      */
     public function join($separator)
     {
@@ -370,7 +378,7 @@ class ImmutableBag implements ArrayAccess, Countable, IteratorAggregate, JsonSer
      */
     public function immutable()
     {
-        return new ImmutableBag($this->items);
+        return new self($this->items);
     }
 
     /**
@@ -401,7 +409,7 @@ class ImmutableBag implements ArrayAccess, Countable, IteratorAggregate, JsonSer
      *
      * Note: This differs from array_map in that the callback is passed $key first, then $value.
      *
-     * @param callable $callback Function is passed (key, value).
+     * @param callable $callback Function is passed (key, value)
      *
      * @return static
      */
@@ -420,7 +428,7 @@ class ImmutableBag implements ArrayAccess, Countable, IteratorAggregate, JsonSer
      * Applies the given function to each _key_ in the bag and returns
      * a new bag with the keys returned by the function and their values.
      *
-     * @param callable $callback Function is passed (key, value).
+     * @param callable $callback Function is passed (key, value)
      *
      * @return static
      */
@@ -472,7 +480,7 @@ class ImmutableBag implements ArrayAccess, Countable, IteratorAggregate, JsonSer
     /**
      * Replaces items in this bag from the given collection by comparing keys and returns the result.
      *
-     * @param Traversable|array $collection The collection from which items will be extracted.
+     * @param Traversable|array $collection The collection from which items will be extracted
      *
      * @return static
      */
@@ -489,7 +497,7 @@ class ImmutableBag implements ArrayAccess, Countable, IteratorAggregate, JsonSer
      *  - Null values from given collection do not replace lists or associative arrays in this Bag
      *    (they do still replace scalar values).
      *
-     * @param Traversable|array $collection The collection from which items will be extracted.
+     * @param Traversable|array $collection The collection from which items will be extracted
      *
      * @return static
      */
@@ -502,7 +510,7 @@ class ImmutableBag implements ArrayAccess, Countable, IteratorAggregate, JsonSer
      * Returns a bag with the items from the given collection added to the items in this bag
      * if they do not already exist by comparing keys. The opposite of replace().
      *
-     * @param Traversable|array $collection The collection from which items will be extracted.
+     * @param Traversable|array $collection The collection from which items will be extracted
      *
      * @return static
      */
@@ -515,7 +523,7 @@ class ImmutableBag implements ArrayAccess, Countable, IteratorAggregate, JsonSer
      * Returns a bag with the items from the given collection recursively added to the items in this bag
      * if they do not already exist by comparing keys. The opposite of replaceRecursive().
      *
-     * @param Traversable|array $collection The collection from which items will be extracted.
+     * @param Traversable|array $collection The collection from which items will be extracted
      *
      * @return static
      */
@@ -530,7 +538,7 @@ class ImmutableBag implements ArrayAccess, Countable, IteratorAggregate, JsonSer
      * Note: This should only be used for lists (zero indexed and sequential items).
      * For associative arrays, use replace instead.
      *
-     * @param Traversable|array $list The list of items to merge.
+     * @param Traversable|array $list The list of items to merge
      *
      * @return static
      */
@@ -547,7 +555,7 @@ class ImmutableBag implements ArrayAccess, Countable, IteratorAggregate, JsonSer
      * @param int|null $length       If positive, the maximum number of items to return.
      *                               If negative, the bag will stop that far from the end of the list.
      *                               If null, the bag will have everything from the $offset to the end of the list.
-     * @param bool     $preserveKeys Whether to preserve keys in the resulting bag or not.
+     * @param bool     $preserveKeys Whether to preserve keys in the resulting bag or not
      *
      * @return static
      */
@@ -564,7 +572,7 @@ class ImmutableBag implements ArrayAccess, Countable, IteratorAggregate, JsonSer
      *         return true; // whatever logic
      *     });
      *
-     * @param callable $callback The function is passed (key, value) and should return a boolean.
+     * @param callable $callback The function is passed (key, value) and should return a boolean
      *
      * @return static[] [true bag, false bag]
      */
@@ -589,8 +597,8 @@ class ImmutableBag implements ArrayAccess, Countable, IteratorAggregate, JsonSer
      * Optionally, an $indexKey may be provided to index the values in the
      * returned Bag by the values from the $indexKey column.
      *
-     * @param string      $columnKey Column of values to return.
-     * @param string|null $indexKey  Column to use as the index/keys for the returned items.
+     * @param string      $columnKey Column of values to return
+     * @param string|null $indexKey  Column to use as the index/keys for the returned items
      *
      * @return static
      */
@@ -604,9 +612,9 @@ class ImmutableBag implements ArrayAccess, Countable, IteratorAggregate, JsonSer
      *
      * If a value has several occurrences, the latest key will be used as its value, and all others will be lost.
      *
-     * @return static
-     *
      * @throws RuntimeException when flip fails
+     *
+     * @return static
      */
     public function flip()
     {
@@ -622,10 +630,10 @@ class ImmutableBag implements ArrayAccess, Countable, IteratorAggregate, JsonSer
      * Iteratively reduce the items to a single value using a callback function.
      *
      * @param callable $callback Function is passed $carry (previous or initial value)
-     *                           and $item (value of the current iteration).
+     *                           and $item (value of the current iteration)
      * @param mixed    $initial  Initial value
      *
-     * @return mixed The resulting value or the initial value if list is empty.
+     * @return mixed The resulting value or the initial value if list is empty
      */
     public function reduce(callable $callback, $initial = null)
     {
@@ -669,6 +677,7 @@ class ImmutableBag implements ArrayAccess, Countable, IteratorAggregate, JsonSer
         $create = function ($items) {
             return $this->createFrom($items);
         };
+
         return $this->createFrom(array_map($create, array_chunk($this->items, $size, $preserveKeys)));
     }
 
@@ -759,7 +768,7 @@ class ImmutableBag implements ArrayAccess, Countable, IteratorAggregate, JsonSer
      */
     public function offsetSet($offset, $value)
     {
-        throw new BadMethodCallException('Cannot modify items on an ' . __CLASS__);
+        throw new BadMethodCallException(sprintf('Cannot modify items on an %s', __CLASS__));
     }
 
     /**
@@ -771,7 +780,7 @@ class ImmutableBag implements ArrayAccess, Countable, IteratorAggregate, JsonSer
      */
     public function offsetUnset($offset)
     {
-        throw new BadMethodCallException('Cannot remove items from an ' . __CLASS__);
+        throw new BadMethodCallException(sprintf('Cannot remove items from an %s', __CLASS__));
     }
 
     /**

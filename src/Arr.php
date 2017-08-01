@@ -21,9 +21,9 @@ class Arr
      * Optionally, an $indexKey may be provided to index the values in the returned array by the
      * values from the $indexKey column in the input array.
      *
-     * @param Traversable|array $input A list of arrays or objects from which to pull a column of values.
-     * @param string|int        $columnKey The column of values to return.
-     * @param string|int|null   $indexKey The column to use as the index/keys for the returned array.
+     * @param Traversable|array $input     A list of arrays or objects from which to pull a column of values
+     * @param string|int        $columnKey The column of values to return
+     * @param string|int|null   $indexKey  The column to use as the index/keys for the returned array
      *
      * @return array
      */
@@ -182,9 +182,8 @@ class Arr
      * @param string            $path  Path to set
      * @param mixed             $value Value to set at the key
      *
-     * @throws \RuntimeException when trying to set using a nested path
-     *     that travels through a scalar value or an object whose
-     *     offsetGet method isn't marked as return by reference.
+     * @throws \RuntimeException when trying to set using a nested path that travels through a scalar value or an
+     *                           object whose offsetGet method isn't marked as return by reference
      */
     public static function set(&$data, $path, $value)
     {
@@ -199,41 +198,43 @@ class Arr
             } else {
                 $data[$path] = $value;
             }
+
             return;
         }
 
         $invalidKey = null;
-        $current =& $data;
+        $current = &$data;
         while (null !== ($key = array_shift($queue))) {
             if (!is_array($current) && !($current instanceof ArrayAccess)) {
                 throw new RuntimeException(
-                    "Cannot set '$path', because '$invalidKey' is already set and not an array " .
-                    "or an object implementing ArrayAccess."
+                    sprintf(
+                        "Cannot set '%s', because '%s' is already set and not an array or an object implementing ArrayAccess.",
+                        $path,
+                        $invalidKey
+                    )
                 );
-            } elseif (!$queue) {
+            }
+            if (!$queue) {
                 if ($key === '[]') {
                     $current[] = $value;
                 } else {
                     $current[$key] = $value;
                 }
             } elseif (isset($current[$key])) {
-                $current =& $current[$key];
+                $current = &$current[$key];
+            } elseif (!static::canReturnArraysByReference($current)) {
+                throw new RuntimeException(
+                    sprintf(
+                        "Cannot set '%s', because '%s' is an %s which does not return arrays by reference from its offsetGet() method. See %s for an example of how to do this.",
+                        $path,
+                        $invalidKey,
+                        get_class($current),
+                        Bag::class
+                    )
+                );
             } else {
-                if (!static::canReturnArraysByReference($current)) {
-                    $class = get_class($current);
-                    throw new RuntimeException(
-                        sprintf(
-                            "Cannot set '%s', because '%s' is an %s which does not return arrays " .
-                            "by reference from its offsetGet() method. See %s for an example of how to do this.",
-                            $path,
-                            $invalidKey,
-                            $class,
-                            Bag::class
-                        )
-                    );
-                }
                 $current[$key] = [];
-                $current =& $current[$key];
+                $current = &$current[$key];
             }
             $invalidKey = $key;
         }
@@ -262,8 +263,10 @@ class Arr
     {
         if (!static::isAccessible($value)) {
             throw new InvalidArgumentException(
-                'Expected an array or an object implementing ArrayAccess. Got: ' .
-                (is_object($value) ? get_class($value) : gettype($value))
+                sprintf(
+                    'Expected an array or an object implementing ArrayAccess. Got: %s',
+                    is_object($value) ? get_class($value) : gettype($value)
+                )
             );
         }
     }
@@ -339,7 +342,9 @@ class Arr
             if ($value instanceof Traversable) {
                 $value = iterator_to_array($value);
             }
-            if (is_array($value) && static::isAssociative($value) && isset($merged[$key]) && is_iterable($merged[$key])) {
+            if (is_array($value) && static::isAssociative($value)
+                && isset($merged[$key]) && is_iterable($merged[$key])
+            ) {
                 $merged[$key] = static::replaceRecursive($merged[$key], $value);
             } elseif ($value === null && isset($merged[$key]) && is_iterable($merged[$key])) {
                 // Convert iterable to array to be consistent.
@@ -392,7 +397,7 @@ class Arr
                 }
             });
             try {
-                $test =& $obj[$testKey];
+                $test = &$obj[$testKey];
                 if (!isset($supportedClasses[$class])) {
                     $supportedClasses[$class] = true;
                 }
@@ -400,8 +405,8 @@ class Arr
                 restore_error_handler();
             }
         } else {
-            $test1 =& $obj[$testKey];
-            $test2 =& $obj[$testKey];
+            $test1 = &$obj[$testKey];
+            $test2 = &$obj[$testKey];
             $test1[$testKey] = 'test';
             if ($test1 === $test2) {
                 $supportedClasses[$class] = true;
