@@ -555,11 +555,20 @@ class ImmutableBagTest extends TestCase
 
         $this->assertInstanceOf(ImmutableBag::class, $actual);
         $this->assertNotSame($bag, $actual);
-        $this->assertNotEquals($bag->toArray(), $actual->toArray());
 
         $sorted = $actual->toArray();
         sort($sorted);
         $this->assertEquals($bag->toArray(), $sorted);
+
+        // reduce odds that shuffle is produces same order.
+        for ($i = 0; $i < 10; ++$i) {
+            if ($bag->toArray() !== $actual->toArray()) {
+                break;
+            }
+            $actual = $bag->shuffle();
+        }
+
+        $this->assertNotEquals($bag->toArray(), $actual->toArray());
     }
 
     // endregion
