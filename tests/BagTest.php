@@ -4,13 +4,20 @@ namespace Bolt\Collection\Tests;
 
 use ArrayObject;
 use Bolt\Collection\Bag;
-use PHPUnit_Framework_TestCase as TestCase;
 
-class BagTest extends TestCase
+class BagTest extends ImmutableBagTest
 {
+    /** @var string|Bag */
+    protected $cls = Bag::class;
+
+    protected function createBag($items = [])
+    {
+        return new Bag($items);
+    }
+
     public function testAdd()
     {
-        $bag = new Bag();
+        $bag = $this->createBag();
 
         $bag->add('foo');
         $bag->add('bar');
@@ -20,7 +27,7 @@ class BagTest extends TestCase
 
     public function testPrepend()
     {
-        $bag = new Bag();
+        $bag = $this->createBag();
 
         $bag->prepend('foo');
         $bag->prepend('bar');
@@ -30,7 +37,7 @@ class BagTest extends TestCase
 
     public function testSet()
     {
-        $bag = new Bag();
+        $bag = $this->createBag();
 
         $bag->set('foo', 'bar');
 
@@ -39,7 +46,7 @@ class BagTest extends TestCase
 
     public function testSetPath()
     {
-        $bag = new Bag([
+        $bag = $this->createBag([
             'items' => new ArrayObject([
                 'foo' => 'bar',
             ]),
@@ -56,7 +63,7 @@ class BagTest extends TestCase
 
     public function testClear()
     {
-        $bag = new Bag(['foo', 'bar']);
+        $bag = $this->createBag(['foo', 'bar']);
 
         $bag->clear();
 
@@ -65,7 +72,7 @@ class BagTest extends TestCase
 
     public function testRemove()
     {
-        $bag = new Bag(['foo' => 'bar']);
+        $bag = $this->createBag(['foo' => 'bar']);
 
         $this->assertEquals('bar', $bag->remove('foo'));
         $this->assertFalse($bag->has('foo'));
@@ -76,7 +83,7 @@ class BagTest extends TestCase
 
     public function testRemoveItem()
     {
-        $bag = new Bag(['foo', 'bar']);
+        $bag = $this->createBag(['foo', 'bar']);
 
         $bag->removeItem('bar');
 
@@ -85,7 +92,7 @@ class BagTest extends TestCase
 
     public function testRemoveFirst()
     {
-        $bag = new Bag(['foo', 'bar']);
+        $bag = $this->createBag(['foo', 'bar']);
 
         $this->assertEquals('foo', $bag->removeFirst());
         $this->assertEquals('bar', $bag->removeFirst());
@@ -95,11 +102,11 @@ class BagTest extends TestCase
 
     public function testRemoveLast()
     {
-        $bag = new Bag(['foo', 'bar']);
+        $bag = $this->createBag(['foo', 'bar']);
 
         $this->assertEquals('bar', $bag->removeLast());
         $this->assertEquals('foo', $bag->removeLast());
-        $this->assertNull($bag->removeFirst());
+        $this->assertNull($bag->removeLast());
         $this->assertTrue($bag->isEmpty());
     }
 
@@ -107,15 +114,15 @@ class BagTest extends TestCase
 
     public function testOffsetGet()
     {
-        $bag = new Bag(['foo' => 'bar']);
+        $bag = $this->createBag(['foo' => 'bar']);
 
         $this->assertEquals('bar', $bag['foo']);
         $this->assertNull($bag['nope']);
     }
 
-    public function testOffsetGetModifyByReference()
+    public function testOffsetGetByReference()
     {
-        $bag = new Bag(['arr' => ['1']]);
+        $bag = $this->createBag(['arr' => ['1']]);
 
         // Assert arrays are not able to be modified by reference.
         $errors = new \ArrayObject();
@@ -134,7 +141,7 @@ class BagTest extends TestCase
 
     public function testOffsetSet()
     {
-        $bag = new Bag();
+        $bag = $this->createBag();
 
         $bag['foo'] = 'bar';
         $bag[] = 'hello';
@@ -147,7 +154,7 @@ class BagTest extends TestCase
 
     public function testOffsetUnset()
     {
-        $bag = new Bag(['foo' => 'bar']);
+        $bag = $this->createBag(['foo' => 'bar']);
 
         unset($bag['foo']);
 
