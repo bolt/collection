@@ -270,6 +270,104 @@ class ImmutableBagTest extends TestCase
         $this->assertEquals(!$isIndexed, $bag->isAssociative());
     }
 
+    public function provideIndexOf()
+    {
+        return [
+            //  0  1  2  3  4  5
+            // [a, b, c, a, b, c]
+            // [expected index, item to find, starting index]
+            'first item, starting default'     => [0, 'a'],
+            'first item, starting first index' => [0, 'a', 0],
+            'first item, starting last index'  => [null, 'a', 5],
+            'first item, starting max'         => [null, 'a', 100],
+            'first item, starting min'         => [0, 'a', -100],
+            'first item, starting mid neg'     => [3, 'a', -4],
+            'first item, starting mid neg @'   => [3, 'a', -2],
+            'first item, starting mid pos'     => [3, 'a', 1],
+            'first item, starting mid pos @'   => [3, 'a', 3],
+
+            'last item, starting default'     => [2, 'c'],
+            'last item, starting first index' => [2, 'c', 0],
+            'last item, starting last index'  => [5, 'c', 5],
+            'last item, starting max'         => [5, 'c', 100],
+            'last item, starting min'         => [2, 'c', -100],
+            'last item, starting mid neg'     => [2, 'c', -4],
+            'last item, starting mid neg @'   => [2, 'c', -3],
+            'last item, starting mid pos'     => [2, 'c', 1],
+            'last item, starting mid pos @'   => [2, 'c', 2],
+
+            'empty, starting default' => [null, '', 0, []],
+            'empty, starting pos'     => [null, '', 2, []],
+            'empty, starting neg'     => [null, '', -2, []],
+
+            'associative' => ['foo', 'bar', 0, ['foo' => 'bar']],
+        ];
+    }
+
+    /**
+     * @dataProvider provideIndexOf
+     *
+     * @param $expectedIndex
+     * @param $item
+     * @param $fromIndex
+     * @param $items
+     */
+    public function testIndexOf($expectedIndex, $item, $fromIndex = 0, $items = null)
+    {
+        $bag = $this->createBag($items ?: ['a', 'b', 'c', 'a', 'b', 'c']);
+
+        $this->assertSame($expectedIndex, $bag->indexOf($item, $fromIndex));
+    }
+
+    public function provideLastIndexOf()
+    {
+        return [
+            //  0  1  2  3  4  5
+            // [a, b, c, a, b, c]
+            // [expected index, item to find, starting index]
+            'last item, starting default'     => [5, 'c'],
+            'last item, starting first index' => [null, 'c', 0],
+            'last item, starting last index'  => [5, 'c', 5],
+            'last item, starting max'         => [5, 'c', 100],
+            'last item, starting min'         => [null, 'c', -100],
+            'last item, starting mid neg'     => [2, 'c', -1],
+            'last item, starting mid neg @'   => [2, 'c', -3],
+            'last item, starting mid pos'     => [2, 'c', 3],
+            'last item, starting mid pos @'   => [2, 'c', 2],
+
+            'first item, starting default'     => [3, 'a'],
+            'first item, starting first index' => [0, 'a', 0],
+            'first item, starting last index'  => [3, 'a', 5],
+            'first item, starting max'         => [3, 'a', 100],
+            'first item, starting min'         => [0, 'a', -100],
+            'first item, starting mid neg'     => [3, 'a', -1],
+            'first item, starting mid neg @'   => [3, 'a', -2],
+            'first item, starting mid pos'     => [3, 'a', 4],
+            'first item, starting mid pos @'   => [3, 'a', 3],
+
+            'empty, starting default' => [null, '', null, []],
+            'empty, starting pos'     => [null, '', 2, []],
+            'empty, starting neg'     => [null, '', -2, []],
+
+            'associative' => ['foo', 'bar', null, ['foo' => 'bar']],
+        ];
+    }
+
+    /**
+     * @dataProvider provideLastIndexOf
+     *
+     * @param $expectedIndex
+     * @param $item
+     * @param $fromIndex
+     * @param $items
+     */
+    public function testLastIndexOf($expectedIndex, $item, $fromIndex = null, $items = null)
+    {
+        $bag = $this->createBag($items ?: ['a', 'b', 'c', 'a', 'b', 'c']);
+
+        $this->assertSame($expectedIndex, $bag->lastIndexOf($item, $fromIndex));
+    }
+
     // endregion
 
     // region Methods returning a new bag
