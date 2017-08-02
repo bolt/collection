@@ -4,10 +4,13 @@ namespace Bolt\Collection\Tests;
 
 use Bolt\Collection\Arr;
 use Bolt\Collection\Bag;
+use Bolt\Collection\Tests\Fixtures\TestArrayLike;
+use Bolt\Collection\Tests\Fixtures\TestBadArrayLike;
+use Bolt\Collection\Tests\Fixtures\TestColumn;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Tests for \Bolt\Collection\Arr
+ * Tests for \Bolt\Collection\Arr.
  *
  * @author Carson Full <carsonfull@gmail.com>
  */
@@ -44,8 +47,8 @@ class ArrTest extends TestCase
     {
         return [
             'data not accessible' => [new \EmptyIterator(), 'foo'],
-            'path not string' => [[], false],
-            'empty path' => [[], ''],
+            'path not string'     => [[], false],
+            'empty path'          => [[], ''],
         ];
     }
 
@@ -88,45 +91,53 @@ class ArrTest extends TestCase
     public function provideGetSetHas()
     {
         return [
-            'array' => [[
-                'foo' => 'bar',
-                'items' => [
-                    'nested' => [
-                        'hello' => 'world',
+            'array' => [
+                [
+                    'foo'   => 'bar',
+                    'items' => [
+                        'nested' => [
+                            'hello' => 'world',
+                        ],
+                        'obj' => new \EmptyIterator(),
                     ],
-                    'obj' => new \EmptyIterator(),
                 ],
-            ]],
+            ],
 
-            'array access' => [new \ArrayObject([
-                'foo' => 'bar',
-                'items' => new \ArrayObject([
-                    'nested' => new \ArrayObject([
-                        'hello' => 'world',
+            'array access' => [
+                new \ArrayObject([
+                    'foo'   => 'bar',
+                    'items' => new \ArrayObject([
+                        'nested' => new \ArrayObject([
+                            'hello' => 'world',
+                        ]),
+                        'obj' => new \EmptyIterator(),
                     ]),
-                    'obj' => new \EmptyIterator(),
                 ]),
-            ])],
+            ],
 
-            'user array access' => [new TestArrayLike([
-                'foo' => 'bar',
-                'items' => new TestArrayLike([
-                    'nested' => new TestArrayLike([
-                        'hello' => 'world',
+            'user array access' => [
+                new TestArrayLike([
+                    'foo'   => 'bar',
+                    'items' => new TestArrayLike([
+                        'nested' => new TestArrayLike([
+                            'hello' => 'world',
+                        ]),
+                        'obj' => new \EmptyIterator(),
                     ]),
-                    'obj' => new \EmptyIterator(),
                 ]),
-            ])],
+            ],
 
-            'mixed' => [[
-                'foo' => 'bar',
-                'items' => new \ArrayObject([
-                    'nested' => [
-                        'hello' => 'world',
-                    ],
-                    'obj' => new \EmptyIterator(),
-                ]),
-            ]],
+            'mixed' => [
+                [
+                    'foo'   => 'bar',
+                    'items' => new \ArrayObject([
+                        'nested' => [
+                            'hello' => 'world',
+                        ],
+                        'obj' => new \EmptyIterator(),
+                    ]),
+                ],
+            ],
         ];
     }
 
@@ -235,7 +246,7 @@ class ArrTest extends TestCase
 
         $message = 'Arr::set did not restore previous error handler';
         if (is_array($expectedErrorHandler)) {
-            $this->assertTrue(is_array($actualErrorHandler), $message);
+            $this->assertInternalType('array', $actualErrorHandler, $message);
             $this->assertSame($expectedErrorHandler[0], $actualErrorHandler[0], $message);
             $this->assertSame($expectedErrorHandler[1], $actualErrorHandler[1], $message);
         } else {
@@ -366,23 +377,23 @@ class ArrTest extends TestCase
             'traversable'                             => [
                 new \ArrayObject([
                     'a' => new \ArrayObject([
-                        'foo' => 'bar',
-                        'hello' => 'world',
+                        'foo'           => 'bar',
+                        'hello'         => 'world',
                         'dont override' => new \ArrayObject(['for reals']),
-                    ])
+                    ]),
                 ]),
                 new \ArrayObject([
                     'a' => new \ArrayObject([
-                        'foo' => 'baz',
-                        'dont override' => null
-                    ])
+                        'foo'           => 'baz',
+                        'dont override' => null,
+                    ]),
                 ]),
                 [
                     'a' => [
-                        'foo' => 'baz', // replaced value
-                        'hello' => 'world', // untouched pair
-                        'dont override' => ['for reals'] // null didn't overwrite list
-                    ]
+                        'foo'           => 'baz', // replaced value
+                        'hello'         => 'world', // untouched pair
+                        'dont override' => ['for reals'], // null didn't overwrite list
+                    ],
                 ],
             ],
         ];
@@ -398,71 +409,5 @@ class ArrTest extends TestCase
     public function testReplaceRecursive($array1, $array2, $result)
     {
         $this->assertEquals($result, Arr::replaceRecursive($array1, $array2));
-    }
-}
-
-class TestArrayLike implements \ArrayAccess
-{
-    protected $items = [];
-
-    public function __construct(array $items = [])
-    {
-        $this->items = $items;
-    }
-
-    public function offsetExists($offset)
-    {
-        return isset($this->items[$offset]);
-    }
-
-    public function &offsetGet($offset) // Note "&"
-    {
-        return $this->items[$offset];
-    }
-
-    public function offsetSet($offset, $value)
-    {
-        if ($offset === null) {
-            $this->items[] = $value;
-        } else {
-            $this->items[$offset] = $value;
-        }
-    }
-
-    public function offsetUnset($offset)
-    {
-        unset($this->items[$offset]);
-    }
-}
-
-class TestBadArrayLike extends TestArrayLike
-{
-    public function offsetGet($offset) // Note no "&"
-    {
-        @trigger_error('Some notice', E_USER_NOTICE);
-
-        return $this->items[$offset];
-    }
-}
-
-class TestColumn
-{
-    public $id;
-    private $value;
-
-    public function __construct($id, $value)
-    {
-        $this->id = $id;
-        $this->value = $value;
-    }
-
-    public function __isset($name)
-    {
-        return $name === 'value';
-    }
-
-    public function __get($name)
-    {
-        return $this->value;
     }
 }

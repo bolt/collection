@@ -17,7 +17,7 @@ class Bag extends ImmutableBag
     /**
      * Adds an item to the end of this bag.
      *
-     * @param mixed $item The item to append.
+     * @param mixed $item The item to append
      */
     public function add($item)
     {
@@ -27,7 +27,7 @@ class Bag extends ImmutableBag
     /**
      * Adds an item to the beginning of this bag.
      *
-     * @param mixed $item The item to prepend.
+     * @param mixed $item The item to prepend
      */
     public function prepend($item)
     {
@@ -86,10 +86,10 @@ class Bag extends ImmutableBag
     /**
      * Removes and returns the item at the specified key from the bag.
      *
-     * @param string|integer $key     The kex of the item to remove.
-     * @param mixed|null     $default The default value to return if the key is not found.
+     * @param string|int $key     The kex of the item to remove
+     * @param mixed|null $default The default value to return if the key is not found
      *
-     * @return mixed The removed item or default, if the bag did not contain the item.
+     * @return mixed The removed item or default, if the bag did not contain the item
      */
     public function remove($key, $default = null)
     {
