@@ -2,45 +2,25 @@
 
 namespace Bolt\Collection;
 
-use Bolt\Common\Deprecated;
-
 /**
  * This is an OO implementation of almost all of PHP's array functionality.
  *
- * All methods that allow mutation are deprecated, use {@see MutableBag} for those cases instead.
+ * Generally only methods dealing with a single item mutate the current bag,
+ * all others return a new bag.
  *
  * @author Carson Full <carsonfull@gmail.com>
  */
-class Bag extends ImmutableBag
+class MutableBag extends Bag
 {
-    // region Creation / Unwrapping Methods
-
-    /**
-     * Constructor.
-     *
-     * @param array $items
-     */
-    public function __construct(array $items = [])
-    {
-        // Don't call parent to avoid deprecation warning.
-        $this->items = $items;
-    }
-
-    // endregion
-
-    // region Mutating Methods (Deprecated)
+    // region Mutating Methods
 
     /**
      * Adds an item to the end of this bag.
      *
      * @param mixed $item The item to append
-     *
-     * @deprecated since 1.1 and will be removed in 2.0. Use {@see MutableBag} instead.
      */
     public function add($item)
     {
-        Deprecated::method(1.1, MutableBag::class);
-
         $this->items[] = $item;
     }
 
@@ -48,13 +28,9 @@ class Bag extends ImmutableBag
      * Adds an item to the beginning of this bag.
      *
      * @param mixed $item The item to prepend
-     *
-     * @deprecated since 1.1 and will be removed in 2.0. Use {@see MutableBag} instead.
      */
     public function prepend($item)
     {
-        Deprecated::method(1.1, MutableBag::class);
-
         array_unshift($this->items, $item);
     }
 
@@ -63,13 +39,9 @@ class Bag extends ImmutableBag
      *
      * @param string $key   The key
      * @param mixed  $value The value
-     *
-     * @deprecated since 1.1 and will be removed in 2.0. Use {@see MutableBag} instead.
      */
     public function set($key, $value)
     {
-        Deprecated::method(1.1, MutableBag::class);
-
         $this->items[$key] = $value;
     }
 
@@ -97,25 +69,17 @@ class Bag extends ImmutableBag
      *
      * @param string $path  The path to traverse and set the value at
      * @param mixed  $value The value to set
-     *
-     * @deprecated since 1.1 and will be removed in 2.0. Use {@see MutableBag} instead.
      */
     public function setPath($path, $value)
     {
-        Deprecated::method(1.1, MutableBag::class);
-
         Arr::set($this->items, $path, $value);
     }
 
     /**
      * Remove all items from bag.
-     *
-     * @deprecated since 1.1 and will be removed in 2.0. Use {@see MutableBag} instead.
      */
     public function clear()
     {
-        Deprecated::method(1.1, MutableBag::class);
-
         $this->items = [];
     }
 
@@ -126,13 +90,9 @@ class Bag extends ImmutableBag
      * @param mixed|null $default The default value to return if the key is not found
      *
      * @return mixed The removed item or default, if the bag did not contain the item
-     *
-     * @deprecated since 1.1 and will be removed in 2.0. Use {@see MutableBag} instead.
      */
     public function remove($key, $default = null)
     {
-        Deprecated::method(1.1, MutableBag::class);
-
         if (!$this->has($key)) {
             return $default;
         }
@@ -147,13 +107,9 @@ class Bag extends ImmutableBag
      * Removes the given item from the bag if it is found.
      *
      * @param mixed $item
-     *
-     * @deprecated since 1.1 and will be removed in 2.0. Use {@see MutableBag} instead.
      */
     public function removeItem($item)
     {
-        Deprecated::method(1.1, MutableBag::class);
-
         $key = array_search($item, $this->items, true);
 
         if ($key !== false) {
@@ -165,13 +121,9 @@ class Bag extends ImmutableBag
      * Removes and returns the first item in the list.
      *
      * @return mixed|null
-     *
-     * @deprecated since 1.1 and will be removed in 2.0. Use {@see MutableBag} instead.
      */
     public function removeFirst()
     {
-        Deprecated::method(1.1, MutableBag::class);
-
         return array_shift($this->items);
     }
 
@@ -179,13 +131,9 @@ class Bag extends ImmutableBag
      * Removes and returns the last item in the list.
      *
      * @return mixed|null
-     *
-     * @deprecated since 1.1 and will be removed in 2.0. Use {@see MutableBag} instead.
      */
     public function removeLast()
     {
-        Deprecated::method(1.1, MutableBag::class);
-
         return array_pop($this->items);
     }
 
@@ -202,8 +150,6 @@ class Bag extends ImmutableBag
      */
     public function &offsetGet($offset)
     {
-        // Returning values by reference is deprecated, but we have no way of knowing here.
-
         $result = null;
         if (isset($this->items[$offset])) {
             $result = &$this->items[$offset];
@@ -221,12 +167,10 @@ class Bag extends ImmutableBag
      */
     public function offsetSet($offset, $value)
     {
-        Deprecated::method(1.1, MutableBag::class);
-
         if ($offset === null) {
-            $this->items[] = $value;
+            $this->add($value);
         } else {
-            $this->items[$offset] = $value;
+            $this->set($offset, $value);
         }
     }
 
@@ -239,9 +183,7 @@ class Bag extends ImmutableBag
      */
     public function offsetUnset($offset)
     {
-        Deprecated::method(1.1, MutableBag::class);
-
-        unset($this->items[$offset]);
+        $this->remove($offset);
     }
 
     // endregion

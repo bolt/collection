@@ -5,8 +5,12 @@ namespace Bolt\Collection\Tests;
 use ArrayObject;
 use Bolt\Collection\Bag;
 use Bolt\Collection\ImmutableBag;
+use Bolt\Collection\MutableBag;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @group legacy
+ */
 class ImmutableBagTest extends TestCase
 {
     /** @var string|ImmutableBag class used for static creation methods and instance of assertions */
@@ -278,7 +282,7 @@ class ImmutableBagTest extends TestCase
         $mutable = $bag->mutable();
 
         $this->assertNotSame($bag, $mutable);
-        $this->assertInstanceOf(Bag::class, $mutable);
+        $this->assertInstanceOf(MutableBag::class, $mutable);
         $this->assertEquals(['foo' => 'bar'], $mutable->toArray());
     }
 
@@ -289,7 +293,7 @@ class ImmutableBagTest extends TestCase
         $immutable = $bag->immutable();
 
         $this->assertNotSame($bag, $immutable);
-        $this->assertInstanceOf(ImmutableBag::class, $immutable);
+        $this->assertInstanceOf(Bag::class, $immutable);
         $this->assertEquals(['foo', 'bar'], $immutable->toArray());
     }
 
