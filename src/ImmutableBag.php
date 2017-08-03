@@ -318,18 +318,8 @@ class ImmutableBag implements ArrayAccess, Countable, IteratorAggregate, JsonSer
      */
     public function indexOf($item, $fromIndex = 0)
     {
-        Assert::integer($fromIndex);
-
-        $count = count($this->items);
-        $last = $count - 2;
-
-        $index = $fromIndex < 0 ? max($last + $fromIndex, -1) : min($fromIndex - 1, $last);
-
-        $keys = array_keys($this->items);
-
-        while (++$index < $count) {
-            $key = $keys[$index];
-            if ($this->items[$key] === $item) {
+        foreach ($this->iterateFromIndex($fromIndex) as $key => $value) {
+            if ($value === $item) {
                 return $key;
             }
         }
@@ -351,6 +341,128 @@ class ImmutableBag implements ArrayAccess, Countable, IteratorAggregate, JsonSer
      */
     public function lastIndexOf($item, $fromIndex = null)
     {
+        foreach ($this->iterateReverseFromIndex($fromIndex) as $key => $value) {
+            if ($value === $item) {
+                return $key;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Returns the first item that matches the predicate or null.
+     *
+     * @param callable $predicate Function is passed (value, key)
+     * @param int      $fromIndex The starting index to search from.
+     *                            Can be negative to start from that far from the end of the array.
+     *                            If index is out of bounds, it will be moved to first/last index.
+     *
+     * @return mixed|null
+     */
+    public function find(callable $predicate, $fromIndex = 0)
+    {
+        $index = $this->findKey($predicate, $fromIndex);
+
+        return $index !== null ? $this->items[$index] : null;
+    }
+
+    /**
+     * Returns the last item that matches the predicate or null.
+     *
+     * @param callable $predicate Function is passed (value, key)
+     * @param int      $fromIndex The starting index to search from.
+     *                            Can be negative to start from that far from the end of the array.
+     *                            If index is out of bounds, it will be moved to first/last index.
+     *
+     * @return mixed|null
+     */
+    public function findLast(callable $predicate, $fromIndex = null)
+    {
+        $index = $this->findLastKey($predicate, $fromIndex);
+
+        return $index !== null ? $this->items[$index] : null;
+    }
+
+    /**
+     * Returns the first key that matches the predicate or null.
+     *
+     * @param callable $predicate Function is passed (value, key)
+     * @param int      $fromIndex The starting index to search from.
+     *                            Can be negative to start from that far from the end of the array.
+     *                            If index is out of bounds, it will be moved to first/last index.
+     *
+     * @return mixed|null
+     */
+    public function findKey(callable $predicate, $fromIndex = 0)
+    {
+        foreach ($this->iterateFromIndex($fromIndex) as $key => $value) {
+            if ($predicate($value, $key)) {
+                return $key;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Returns the last key that matches the predicate or null.
+     *
+     * @param callable $predicate Function is passed (value, key)
+     * @param int      $fromIndex The starting index to search from.
+     *                            Can be negative to start from that far from the end of the array.
+     *                            If index is out of bounds, it will be moved to first/last index.
+     *
+     * @return mixed|null
+     */
+    public function findLastKey(callable $predicate, $fromIndex = null)
+    {
+        foreach ($this->iterateReverseFromIndex($fromIndex) as $key => $value) {
+            if ($predicate($value, $key)) {
+                return $key;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Iterate through the items starting at the given index.
+     *
+     * @param int $fromIndex The starting index to search from.
+     *                       Can be negative to start from that far from the end of the array.
+     *                       If index is out of bounds, it will be moved to first/last index.
+     *
+     * @return \Generator
+     */
+    private function iterateFromIndex($fromIndex)
+    {
+        Assert::integer($fromIndex);
+
+        $count = count($this->items);
+        $last = $count - 2;
+
+        $index = $fromIndex < 0 ? max($last + $fromIndex, -1) : min($fromIndex - 1, $last);
+
+        $keys = array_keys($this->items);
+
+        while (++$index < $count) {
+            $key = $keys[$index];
+            yield $key => $this->items[$key];
+        }
+    }
+
+    /**
+     * Reverse iterate through the items starting at the given index.
+     *
+     * @param int $fromIndex The starting index to search from. Default is the last index.
+     *                       Can be negative to start from that far from the end of the array.
+     *                       If index is out of bounds, it will be moved to first/last index.
+     *
+     * @return \Generator
+     */
+    private function iterateReverseFromIndex($fromIndex)
+    {
         Assert::nullOrInteger($fromIndex);
 
         $index = count($this->items);
@@ -363,12 +475,8 @@ class ImmutableBag implements ArrayAccess, Countable, IteratorAggregate, JsonSer
 
         while (--$index >= 0) {
             $key = $keys[$index];
-            if ($this->items[$key] === $item) {
-                return $key;
-            }
+            yield $key => $this->items[$key];
         }
-
-        return null;
     }
 
     // endregion

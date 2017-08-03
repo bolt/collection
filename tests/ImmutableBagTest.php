@@ -368,6 +368,64 @@ class ImmutableBagTest extends TestCase
         $this->assertSame($expectedIndex, $bag->lastIndexOf($item, $fromIndex));
     }
 
+    public function testFind()
+    {
+        list($bag, $matchBs, $b1, $b2) = $this->findSetup();
+
+        $this->assertSame($b1, $bag->find($matchBs));
+        $this->assertSame($b2, $bag->find($matchBs, 3));
+        $this->assertSame($b2, $bag->find($matchBs, -2));
+        $this->assertNull($bag->find($matchBs, 5));
+    }
+
+    public function testFindLast()
+    {
+        list($bag, $matchBs, $b1, $b2) = $this->findSetup();
+
+        $this->assertSame($b2, $bag->findLast($matchBs));
+        $this->assertSame($b1, $bag->findLast($matchBs, 3));
+        $this->assertSame($b1, $bag->findLast($matchBs, -2));
+        $this->assertNull($bag->findLast($matchBs, 0));
+    }
+
+    public function testFindKey()
+    {
+        list($bag, $matchBs) = $this->findSetup();
+
+        $this->assertSame(1, $bag->findKey($matchBs));
+        $this->assertSame(4, $bag->findKey($matchBs, 3));
+        $this->assertSame(4, $bag->findKey($matchBs, -3));
+        $this->assertNull($bag->findKey($matchBs, 5));
+    }
+
+    public function testFindLastKey()
+    {
+        list($bag, $matchBs) = $this->findSetup();
+
+        $this->assertSame(4, $bag->findLastKey($matchBs));
+        $this->assertSame(1, $bag->findLastKey($matchBs, 3));
+        $this->assertSame(1, $bag->findLastKey($matchBs, -3));
+        $this->assertNull($bag->findKey($matchBs, 5));
+    }
+
+    protected function findSetup()
+    {
+        $bag = $this->createBag([
+            $a1 = (object) ['name' => 'a'],
+            $b1 = (object) ['name' => 'b'],
+            $c1 = (object) ['name' => 'c'],
+            $a2 = clone $a1,
+            $b2 = clone $b1,
+            $c2 = clone $c1,
+        ]);
+
+        $matchBs = function ($item) {
+            return $item->name === 'b';
+        };
+
+        return [$bag, $matchBs, $b1, $b2];
+    }
+
     // endregion
 
     // region Methods returning a new bag
