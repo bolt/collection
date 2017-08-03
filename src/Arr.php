@@ -3,10 +3,11 @@
 namespace Bolt\Collection;
 
 use ArrayAccess;
+use Bolt\Common\Assert;
+use Bolt\Common\Deprecated;
 use InvalidArgumentException;
 use RuntimeException;
 use Traversable;
-use Webmozart\Assert\Assert;
 
 /**
  * Array helper functions.
@@ -29,7 +30,7 @@ class Arr
      */
     public static function column($input, $columnKey, $indexKey = null)
     {
-        Assert::isTraversable($input);
+        Assert::isIterable($input);
 
         $output = [];
 
@@ -101,7 +102,7 @@ class Arr
      */
     public static function has($data, $path)
     {
-        static::assertAccessible($data);
+        Assert::isArrayAccessible($data);
         Assert::stringNotEmpty($path);
 
         $path = explode('/', $path);
@@ -141,7 +142,7 @@ class Arr
      */
     public static function get($data, $path, $default = null)
     {
-        static::assertAccessible($data);
+        Assert::isArrayAccessible($data);
         Assert::stringNotEmpty($path);
 
         $path = explode('/', $path);
@@ -187,7 +188,7 @@ class Arr
      */
     public static function set(&$data, $path, $value)
     {
-        static::assertAccessible($data);
+        Assert::isArrayAccessible($data);
         Assert::stringNotEmpty($path);
 
         $queue = explode('/', $path);
@@ -258,17 +259,14 @@ class Arr
      * @param mixed $value
      *
      * @throws InvalidArgumentException
+     *
+     * @deprecated since 1.0 and will be removed in 2.0. Use {@see \Bolt\Common\Assert::isArrayAccessible} instead.
      */
     public static function assertAccessible($value)
     {
-        if (!static::isAccessible($value)) {
-            throw new InvalidArgumentException(
-                sprintf(
-                    'Expected an array or an object implementing ArrayAccess. Got: %s',
-                    is_object($value) ? get_class($value) : gettype($value)
-                )
-            );
-        }
+        Deprecated::method(1.0, 'Bolt\Common\Assert::isArrayAccessible');
+
+        Assert::isArrayAccessible($value);
     }
 
     /**
@@ -327,7 +325,7 @@ class Arr
      */
     public static function replaceRecursive($array1, $array2)
     {
-        Assert::allIsTraversable([$array1, $array2]);
+        Assert::allIsIterable([$array1, $array2]);
 
         if ($array1 instanceof Traversable) {
             $array1 = iterator_to_array($array1);
