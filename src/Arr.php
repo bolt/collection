@@ -17,6 +17,56 @@ use Traversable;
 class Arr
 {
     /**
+     * Converts an iterable, null, or stdClass to an array.
+     *
+     * @param iterable|null|\stdClass $iterable
+     *
+     * @return array
+     */
+    public static function from($iterable)
+    {
+        if (is_array($iterable)) {
+            return $iterable;
+        }
+        // Don't mean to play favorites, but want to optimize where we can.
+        if ($iterable instanceof ImmutableBag) {
+            return $iterable->toArray();
+        }
+        if ($iterable instanceof Traversable) {
+            return iterator_to_array($iterable);
+        }
+        if ($iterable === null) {
+            return [];
+        }
+        if ($iterable instanceof \stdClass) {
+            return (array) $iterable;
+        }
+
+        Assert::nullOrIsIterable($iterable);
+    }
+
+    /**
+     * Recursively converts an iterable to nested arrays.
+     *
+     * @param iterable|null|\stdClass $iterable
+     *
+     * @return array
+     */
+    public static function fromRecursive($iterable)
+    {
+        $arr = static::from($iterable);
+
+        foreach ($arr as $key => $value) {
+            if ($value instanceof \stdClass || is_iterable($value)) {
+                $value = static::fromRecursive($value);
+            }
+            $arr[$key] = $value;
+        }
+
+        return $arr;
+    }
+
+    /**
      * Return the values from a single column in the input array, identified by the $columnKey.
      *
      * Optionally, an $indexKey may be provided to index the values in the returned array by the

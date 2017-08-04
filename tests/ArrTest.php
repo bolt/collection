@@ -16,6 +16,68 @@ use PHPUnit\Framework\TestCase;
  */
 class ArrTest extends TestCase
 {
+    public function provideFrom()
+    {
+        return [
+            'array' => [
+                ['foo' => 'bar'],
+                ['foo' => 'bar'],
+            ],
+            'bag' => [
+                new Bag(['foo' => 'bar']),
+                ['foo' => 'bar'],
+            ],
+            'traversable' => [
+                new \ArrayIterator(['foo' => 'bar']),
+                ['foo' => 'bar'],
+            ],
+            'null' => [
+                null,
+                [],
+            ],
+            'stdClass' => [
+                (object) ['foo' => 'bar'],
+                ['foo' => 'bar'],
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider provideFrom
+     *
+     * @param $input
+     * @param $expected
+     */
+    public function testFrom($input, $expected)
+    {
+        $this->assertSame($expected, Arr::from($input));
+    }
+
+    /**
+     * @expectedException \InvalidArgumentException
+     * @expectedExceptionMessage Expected an iterable. Got: Exception
+     */
+    public function testFromNonIterable()
+    {
+        Arr::from(new \Exception());
+    }
+
+    public function testFromRecursive()
+    {
+        $expected = [
+            'foo'    => 'bar',
+            'colors' => ['red', 'blue'],
+            'items'  => ['hello', 'world'],
+        ];
+        $input = new Bag([
+            'foo'    => 'bar',
+            'colors' => new Bag(['red', 'blue']),
+            'items'  => (object) ['hello', 'world'],
+        ]);
+
+        $this->assertSame($expected, Arr::fromRecursive($input));
+    }
+
     public function testColumn()
     {
         $data = new \ArrayIterator([
