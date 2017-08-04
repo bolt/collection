@@ -44,25 +44,34 @@ class ImmutableBag implements ArrayAccess, Countable, IteratorAggregate, JsonSer
     /**
      * Create a bag from a variety of collections.
      *
-     * @param Traversable|array|stdClass|mixed|null $collection
+     * @param Traversable|array|stdClass|null $collection
      *
      * @return static
      */
     public static function from($collection)
     {
-        return new static(static::normalize($collection));
+        return new static(Arr::from($collection));
     }
 
     /**
      * Takes the items and recursively converts them to Bags.
      *
-     * @param Traversable|array|stdClass|mixed|null $collection
+     * @param Traversable|array|stdClass|null $collection
      *
      * @return static
      */
-    public static function fromRecursive($collection = [])
+    public static function fromRecursive($collection)
     {
-        return static::convertToCollection($collection);
+        $arr = Arr::from($collection);
+
+        foreach ($arr as $key => $value) {
+            if ($value instanceof stdClass || is_iterable($value)) {
+                $value = static::fromRecursive($value);
+            }
+            $arr[$key] = $value;
+        }
+
+        return new static($arr);
     }
 
     /**
@@ -75,8 +84,8 @@ class ImmutableBag implements ArrayAccess, Countable, IteratorAggregate, JsonSer
      */
     public static function combine($keys, $values)
     {
-        $keys = static::normalize($keys);
-        $values = static::normalize($values);
+        $keys = Arr::from($keys);
+        $values = Arr::from($values);
 
         if (count($keys) !== count($values)) {
             throw new InvalidArgumentException('The size of keys and values needs to be the same.');
@@ -106,7 +115,7 @@ class ImmutableBag implements ArrayAccess, Countable, IteratorAggregate, JsonSer
      */
     public function toArrayRecursive()
     {
-        return static::convertToCollection($this->items, false);
+        return Arr::fromRecursive($this->items);
     }
 
     /**
@@ -122,60 +131,6 @@ class ImmutableBag implements ArrayAccess, Countable, IteratorAggregate, JsonSer
     protected function createFrom(array $items)
     {
         return new static($items);
-    }
-
-    /**
-     * Normalize input to an array.
-     *
-     * @param Traversable|array|stdClass $collection
-     *
-     * @return array
-     */
-    protected static function normalize($collection)
-    {
-        if ($collection instanceof static) {
-            return $collection->toArray();
-        }
-        if ($collection instanceof Traversable) {
-            return iterator_to_array($collection, true);
-        }
-        if ($collection === null) {
-            return [];
-        }
-        if ($collection instanceof stdClass) {
-            return get_object_vars($collection);
-        }
-        if (is_array($collection)) {
-            return $collection;
-        }
-
-        return [$collection];
-    }
-
-    /**
-     * Recursively converts $data to an array or a bag.
-     *
-     * @param Traversable|array|stdClass $data The collection to convert
-     * @param bool                       $bag  Whether to return a bag or an array
-     *
-     * @return static|array
-     */
-    protected static function convertToCollection($data, $bag = true)
-    {
-        $collection = [];
-        foreach ($data as $key => $value) {
-            if ($value instanceof stdClass || is_iterable($value)) {
-                $value = static::convertToCollection($value, $bag);
-            }
-            $collection[$key] = $value;
-        }
-
-        if (!$bag) {
-            /* @noinspection PhpIncompatibleReturnTypeInspection */
-            return $collection;
-        }
-
-        return new static($collection);
     }
 
     // endregion
@@ -491,7 +446,7 @@ class ImmutableBag implements ArrayAccess, Countable, IteratorAggregate, JsonSer
      */
     public function replace($collection)
     {
-        return $this->createFrom(array_replace($this->items, static::normalize($collection)));
+        return $this->createFrom(array_replace($this->items, Arr::from($collection)));
     }
 
     /**
@@ -508,7 +463,7 @@ class ImmutableBag implements ArrayAccess, Countable, IteratorAggregate, JsonSer
      */
     public function replaceRecursive($collection)
     {
-        return $this->createFrom(Arr::replaceRecursive($this->items, static::normalize($collection)));
+        return $this->createFrom(Arr::replaceRecursive($this->items, Arr::from($collection)));
     }
 
     /**
@@ -521,7 +476,7 @@ class ImmutableBag implements ArrayAccess, Countable, IteratorAggregate, JsonSer
      */
     public function defaults($collection)
     {
-        return $this->createFrom(array_replace(static::normalize($collection), $this->items));
+        return $this->createFrom(array_replace(Arr::from($collection), $this->items));
     }
 
     /**
@@ -534,7 +489,7 @@ class ImmutableBag implements ArrayAccess, Countable, IteratorAggregate, JsonSer
      */
     public function defaultsRecursive($collection)
     {
-        return $this->createFrom(Arr::replaceRecursive(static::normalize($collection), $this->items));
+        return $this->createFrom(Arr::replaceRecursive(Arr::from($collection), $this->items));
     }
 
     /**
@@ -549,7 +504,7 @@ class ImmutableBag implements ArrayAccess, Countable, IteratorAggregate, JsonSer
      */
     public function merge($list)
     {
-        return $this->createFrom(array_merge($this->items, static::normalize($list)));
+        return $this->createFrom(array_merge($this->items, Arr::from($list)));
     }
 
     /**

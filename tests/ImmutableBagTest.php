@@ -31,7 +31,6 @@ class ImmutableBagTest extends TestCase
             'null'        => [null, []],
             'stdClass'    => [json_decode(json_encode(['foo' => 'bar']))],
             'array'       => [['foo' => 'bar']],
-            'mixed'       => ['derp', ['derp']],
         ];
     }
 
