@@ -4,6 +4,7 @@ namespace Bolt\Collection;
 
 use ArrayAccess;
 use BadMethodCallException;
+use Bolt\Common\Deprecated;
 use Countable;
 use InvalidArgumentException;
 use IteratorAggregate;
@@ -18,6 +19,8 @@ use Traversable;
  * But there are no methods that allow the object to be mutated. All methods return a new bag.
  *
  * @author Carson Full <carsonfull@gmail.com>
+ *
+ * @deprecated since 1.1 and will be removed in 2.0. Use {@see Bag} instead.
  */
 class ImmutableBag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
 {
@@ -33,6 +36,8 @@ class ImmutableBag implements ArrayAccess, Countable, IteratorAggregate, JsonSer
      */
     public function __construct(array $items = [])
     {
+        Deprecated::method(1.1, Bag::class);
+
         $this->items = $items;
     }
 
@@ -364,21 +369,21 @@ class ImmutableBag implements ArrayAccess, Countable, IteratorAggregate, JsonSer
     /**
      * Returns a mutable bag with the items from this bag.
      *
-     * @return Bag
+     * @return MutableBag
      */
     public function mutable()
     {
-        return new Bag($this->items);
+        return new MutableBag($this->items);
     }
 
     /**
      * Returns an immutable bag with the items from this bag.
      *
-     * @return ImmutableBag
+     * @return Bag
      */
     public function immutable()
     {
-        return new self($this->items);
+        return new Bag($this->items);
     }
 
     /**

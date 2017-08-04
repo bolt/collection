@@ -5,16 +5,28 @@ namespace Bolt\Collection\Tests;
 use ArrayObject;
 use Bolt\Collection\Bag;
 use Bolt\Collection\ImmutableBag;
-use PHPUnit_Framework_TestCase as TestCase;
+use Bolt\Collection\MutableBag;
+use PHPUnit\Framework\TestCase;
 
+/**
+ * @group legacy
+ */
 class ImmutableBagTest extends TestCase
 {
+    /** @var string|ImmutableBag class used for static creation methods and instance of assertions */
+    protected $cls = ImmutableBag::class;
+
+    protected function createBag($items = [])
+    {
+        return new ImmutableBag($items);
+    }
+
     // region Creation / Unwrapping Methods
 
     public function provideFromAndToArray()
     {
         return [
-            'bag'         => [new ImmutableBag(['foo' => 'bar'])],
+            'bag'         => [$this->createBag(['foo' => 'bar'])],
             'traversable' => [new ArrayObject(['foo' => 'bar'])],
             'null'        => [null, []],
             'stdClass'    => [json_decode(json_encode(['foo' => 'bar']))],
@@ -31,7 +43,8 @@ class ImmutableBagTest extends TestCase
      */
     public function testFromAndToArray($input, $output = ['foo' => 'bar'])
     {
-        $actual = ImmutableBag::from($input)->toArray();
+        $cls = $this->cls;
+        $actual = $cls::from($input)->toArray();
         $this->assertSame($output, $actual);
     }
 
@@ -45,17 +58,18 @@ class ImmutableBagTest extends TestCase
             ])),
         ];
 
-        $bag = ImmutableBag::fromRecursive($a);
+        $cls = $this->cls;
+        $bag = $cls::fromRecursive($a);
 
         $bagArr = $bag->toArray();
         $this->assertEquals('bar', $bagArr['foo']);
 
-        $this->assertInstanceOf(ImmutableBag::class, $bagArr['items']);
+        $this->assertInstanceOf($cls, $bagArr['items']);
         /** @var ImmutableBag $items */
         $items = $bagArr['items'];
         $this->assertEquals(['hello' => 'world'], $items->toArray());
 
-        $this->assertInstanceOf(ImmutableBag::class, $bagArr['std class']);
+        $this->assertInstanceOf($cls, $bagArr['std class']);
         /** @var ImmutableBag $stdClass */
         $stdClass = $bagArr['std class'];
         $this->assertEquals(['why use' => 'these'], $stdClass->toArray());
@@ -63,9 +77,9 @@ class ImmutableBagTest extends TestCase
 
     public function testToArrayRecursive()
     {
-        $bag = new ImmutableBag([
+        $bag = $this->createBag([
             'foo'    => 'bar',
-            'colors' => new ImmutableBag(['red', 'blue']),
+            'colors' => $this->createBag(['red', 'blue']),
             'array'  => ['hello', 'world'],
         ]);
         $expected = [
@@ -81,7 +95,8 @@ class ImmutableBagTest extends TestCase
 
     public function testCombine()
     {
-        $actual = ImmutableBag::combine(['red', 'green'], ['bad', 'good'])->toArray();
+        $cls = $this->cls;
+        $actual = $cls::combine(['red', 'green'], ['bad', 'good'])->toArray();
         $expected = [
             'red'   => 'bad',
             'green' => 'good',
@@ -92,7 +107,8 @@ class ImmutableBagTest extends TestCase
 
     public function testCombineEmpty()
     {
-        $actual = ImmutableBag::combine([], [])->toArray();
+        $cls = $this->cls;
+        $actual = $cls::combine([], [])->toArray();
 
         $this->assertEquals([], $actual);
     }
@@ -102,7 +118,8 @@ class ImmutableBagTest extends TestCase
      */
     public function testCombineDifferentSizes()
     {
-        ImmutableBag::combine(['derp'], ['wait', 'wut']);
+        $cls = $this->cls;
+        $cls::combine(['derp'], ['wait', 'wut']);
     }
 
     // endregion
@@ -111,7 +128,7 @@ class ImmutableBagTest extends TestCase
 
     public function testHas()
     {
-        $bag = new ImmutableBag(['foo' => 'bar', 'null' => null]);
+        $bag = $this->createBag(['foo' => 'bar', 'null' => null]);
 
         $this->assertTrue($bag->has('foo'));
         $this->assertTrue($bag->has('null'));
@@ -121,7 +138,7 @@ class ImmutableBagTest extends TestCase
 
     public function testHasPath()
     {
-        $bag = new ImmutableBag([
+        $bag = $this->createBag([
             'items' => new ArrayObject([
                 'foo' => 'bar',
             ]),
@@ -136,7 +153,7 @@ class ImmutableBagTest extends TestCase
     public function testHasItem()
     {
         $foo = new ArrayObject();
-        $bag = new ImmutableBag([
+        $bag = $this->createBag([
             'foo'   => 'bar',
             'items' => $foo,
         ]);
@@ -149,7 +166,7 @@ class ImmutableBagTest extends TestCase
 
     public function testGet()
     {
-        $bag = new ImmutableBag([
+        $bag = $this->createBag([
             'foo'  => 'bar',
             'null' => null,
         ]);
@@ -161,7 +178,7 @@ class ImmutableBagTest extends TestCase
 
     public function testGetPath()
     {
-        $bag = new ImmutableBag([
+        $bag = $this->createBag([
             'items' => new ArrayObject([
                 'foo' => 'bar',
             ]),
@@ -175,68 +192,68 @@ class ImmutableBagTest extends TestCase
 
     public function testCount()
     {
-        $bag = new ImmutableBag(['foo', 'bar']);
+        $bag = $this->createBag(['foo', 'bar']);
 
         $this->assertEquals(2, count($bag));
     }
 
     public function testEmpty()
     {
-        $bag = new ImmutableBag(['foo', 'bar']);
+        $bag = $this->createBag(['foo', 'bar']);
         $this->assertFalse($bag->isEmpty());
 
-        $empty = new ImmutableBag();
+        $empty = $this->createBag();
         $this->assertTrue($empty->isEmpty());
     }
 
     public function testFirst()
     {
-        $bag = new ImmutableBag(['first', 'second']);
+        $bag = $this->createBag(['first', 'second']);
         $this->assertEquals('first', $bag->first());
 
-        $empty = new ImmutableBag();
+        $empty = $this->createBag();
         $this->assertFalse($empty->first());
     }
 
     public function testLast()
     {
-        $bag = new ImmutableBag(['first', 'second']);
+        $bag = $this->createBag(['first', 'second']);
         $this->assertEquals('second', $bag->last());
 
-        $empty = new ImmutableBag();
+        $empty = $this->createBag();
         $this->assertFalse($empty->last());
     }
 
     public function testJoin()
     {
-        $bag = new ImmutableBag(['first', 'second', 'third']);
+        $bag = $this->createBag(['first', 'second', 'third']);
         $this->assertEquals('first, second, third', $bag->join(', '));
 
-        $empty = new ImmutableBag();
+        $empty = $this->createBag();
         $this->assertEquals('', $empty->join(', '));
     }
 
     public function testSum()
     {
-        $bag = new ImmutableBag([3, 4]);
+        $bag = $this->createBag([3, 4]);
         $this->assertEquals(7, $bag->sum());
 
-        $empty = new ImmutableBag();
+        $empty = $this->createBag();
         $this->assertEquals(0, $empty->sum());
 
-        $dumb = new ImmutableBag(['wut']);
+        $dumb = $this->createBag(['wut']);
         $this->assertEquals(0, $dumb->sum());
     }
 
     public function testProduct()
     {
-        $bag = new ImmutableBag([3, 4]);
+        $bag = $this->createBag([3, 4]);
         $this->assertEquals(12, $bag->product());
 
-        $empty = new ImmutableBag();
+        $empty = $this->createBag();
         $this->assertEquals(1, $empty->product());
 
-        $dumb = new ImmutableBag(['wut']);
+        $dumb = $this->createBag(['wut']);
         $this->assertEquals(0, $dumb->product());
     }
 
@@ -248,7 +265,7 @@ class ImmutableBagTest extends TestCase
      */
     public function testIsAssociativeAndIndexed($data, $isIndexed)
     {
-        $bag = new ImmutableBag($data);
+        $bag = $this->createBag($data);
 
         $this->assertEquals($isIndexed, $bag->isIndexed());
         $this->assertEquals(!$isIndexed, $bag->isAssociative());
@@ -260,29 +277,29 @@ class ImmutableBagTest extends TestCase
 
     public function testMutable()
     {
-        $bag = new ImmutableBag(['foo' => 'bar']);
+        $bag = $this->createBag(['foo' => 'bar']);
 
         $mutable = $bag->mutable();
 
         $this->assertNotSame($bag, $mutable);
-        $this->assertInstanceOf(Bag::class, $mutable);
+        $this->assertInstanceOf(MutableBag::class, $mutable);
         $this->assertEquals(['foo' => 'bar'], $mutable->toArray());
     }
 
     public function testImmutable()
     {
-        $bag = new Bag(['foo', 'bar']);
+        $bag = $this->createBag(['foo', 'bar']);
 
         $immutable = $bag->immutable();
 
         $this->assertNotSame($bag, $immutable);
-        $this->assertInstanceOf(ImmutableBag::class, $immutable);
+        $this->assertInstanceOf(Bag::class, $immutable);
         $this->assertEquals(['foo', 'bar'], $immutable->toArray());
     }
 
     public function testKeys()
     {
-        $bag = new ImmutableBag(['foo' => 'bar', 'hello' => 'world']);
+        $bag = $this->createBag(['foo' => 'bar', 'hello' => 'world']);
 
         $keys = $bag->keys();
 
@@ -291,7 +308,7 @@ class ImmutableBagTest extends TestCase
 
     public function testValues()
     {
-        $bag = new ImmutableBag(['foo' => 'bar', 'hello' => 'world']);
+        $bag = $this->createBag(['foo' => 'bar', 'hello' => 'world']);
 
         $values = $bag->values();
 
@@ -300,7 +317,7 @@ class ImmutableBagTest extends TestCase
 
     public function testMap()
     {
-        $bag = new ImmutableBag(['foo' => 'bar', 'hello' => 'world']);
+        $bag = $this->createBag(['foo' => 'bar', 'hello' => 'world']);
 
         $actual = $bag->map(function ($key, $item) {
             return $key . '.' . $item;
@@ -311,7 +328,7 @@ class ImmutableBagTest extends TestCase
 
     public function testMapKeys()
     {
-        $bag = new ImmutableBag(['foo' => 'bar', 'hello' => 'world']);
+        $bag = $this->createBag(['foo' => 'bar', 'hello' => 'world']);
 
         $actual = $bag->mapKeys(function ($key, $item) {
             return $key . '.' . $item;
@@ -322,7 +339,7 @@ class ImmutableBagTest extends TestCase
 
     public function testFilter()
     {
-        $bag = new ImmutableBag(['foo', 'bar', 'hello', 'world']);
+        $bag = $this->createBag(['foo', 'bar', 'hello', 'world']);
 
         $actual = $bag->filter(function ($key, $item) {
             return $item !== 'bar' && $key !== 2;
@@ -333,7 +350,7 @@ class ImmutableBagTest extends TestCase
 
     public function testClean()
     {
-        $bag = new ImmutableBag([null, '', 'foo', false, 0, true, [], ['bar']]);
+        $bag = $this->createBag([null, '', 'foo', false, 0, true, [], ['bar']]);
 
         $actual = $bag->clean();
 
@@ -342,7 +359,7 @@ class ImmutableBagTest extends TestCase
 
     public function testReplace()
     {
-        $bag = new ImmutableBag(['foo' => 'bar']);
+        $bag = $this->createBag(['foo' => 'bar']);
 
         $actual = $bag->replace(['foo' => 'baz', 'hello' => 'world']);
 
@@ -358,7 +375,8 @@ class ImmutableBagTest extends TestCase
      */
     public function testReplaceRecursive($array1, $array2, $expected)
     {
-        $bag = ImmutableBag::from($array1);
+        $cls = $this->cls;
+        $bag = $cls::from($array1);
 
         $actual = $bag->replaceRecursive($array2);
 
@@ -367,7 +385,7 @@ class ImmutableBagTest extends TestCase
 
     public function testDefaults()
     {
-        $bag = new ImmutableBag(['foo' => 'bar']);
+        $bag = $this->createBag(['foo' => 'bar']);
 
         $actual = $bag->defaults(['foo' => 'baz', 'hello' => 'world']);
 
@@ -383,7 +401,8 @@ class ImmutableBagTest extends TestCase
      */
     public function testDefaultsRecursive($array1, $array2, $expected)
     {
-        $bag = ImmutableBag::from($array2);
+        $cls = $this->cls;
+        $bag = $cls::from($array2);
 
         $actual = $bag->defaultsRecursive($array1);
 
@@ -392,7 +411,7 @@ class ImmutableBagTest extends TestCase
 
     public function testMerge()
     {
-        $bag = new ImmutableBag(['foo', 'bar']);
+        $bag = $this->createBag(['foo', 'bar']);
 
         $actual = $bag->merge(['hello', 'world']);
 
@@ -422,7 +441,7 @@ class ImmutableBagTest extends TestCase
      */
     public function testSlice($offset, $length, $preserveKeys, $expected)
     {
-        $bag = new ImmutableBag(['foo', 'bar', 'hello', 'world']);
+        $bag = $this->createBag(['foo', 'bar', 'hello', 'world']);
 
         $actual = $bag->slice($offset, $length, $preserveKeys);
 
@@ -431,7 +450,7 @@ class ImmutableBagTest extends TestCase
 
     public function testPartition()
     {
-        $bag = new ImmutableBag(['foo' => 'bar', 'hello' => 'world']);
+        $bag = $this->createBag(['foo' => 'bar', 'hello' => 'world']);
 
         $actual = $bag->partition(function ($key, $item) {
             return strpos($item, 'a') !== false;
@@ -447,7 +466,7 @@ class ImmutableBagTest extends TestCase
 
     public function testColumn()
     {
-        $bag = new ImmutableBag([
+        $bag = $this->createBag([
             ['id' => 'foo', 'value' => 'bar'],
             ['id' => 'hello', 'value' => 'world'],
         ]);
@@ -461,7 +480,7 @@ class ImmutableBagTest extends TestCase
 
     public function testFlip()
     {
-        $bag = new ImmutableBag(['foo' => 'bar', 'hello' => 'world', 'second' => 'world']);
+        $bag = $this->createBag(['foo' => 'bar', 'hello' => 'world', 'second' => 'world']);
 
         $actual = $bag->flip();
 
@@ -470,7 +489,7 @@ class ImmutableBagTest extends TestCase
 
     public function testReduce()
     {
-        $bag = new ImmutableBag([1, 2, 3, 4]);
+        $bag = $this->createBag([1, 2, 3, 4]);
 
         $product = $bag->reduce(
             function ($carry, $item) {
@@ -484,24 +503,24 @@ class ImmutableBagTest extends TestCase
 
     public function testUnique()
     {
-        $bag = new ImmutableBag(['foo', 'bar', 'foo', 3, '3', '3a', '3']);
+        $bag = $this->createBag(['foo', 'bar', 'foo', 3, '3', '3a', '3']);
         $actual = $bag->unique();
         $this->assertBagResult(['foo', 'bar', 3, '3', '3a'], $bag, $actual);
 
-        $first = new ImmutableBag();
-        $second = new ImmutableBag();
-        $bag = new ImmutableBag([$first, $second, $first]);
+        $first = $this->createBag();
+        $second = $this->createBag();
+        $bag = $this->createBag([$first, $second, $first]);
         $actual = $bag->unique();
         $this->assertBagResult([$first, $second], $bag, $actual);
     }
 
     public function testChunk()
     {
-        $bag = new ImmutableBag(['a', 'b', 'c', 'd', 'e']);
+        $bag = $this->createBag(['a', 'b', 'c', 'd', 'e']);
 
         $chunked = $bag->chunk(2);
 
-        $this->assertInstanceOf(ImmutableBag::class, $chunked);
+        $this->assertInstanceOf($this->cls, $chunked);
         $this->assertNotSame($bag, $chunked);
         $this->assertCount(3, $chunked);
 
@@ -512,11 +531,11 @@ class ImmutableBagTest extends TestCase
 
     public function testChunkPreserveKeys()
     {
-        $bag = new ImmutableBag(['a', 'b', 'c', 'd', 'e']);
+        $bag = $this->createBag(['a', 'b', 'c', 'd', 'e']);
 
         $chunked = $bag->chunk(2, true);
 
-        $this->assertInstanceOf(ImmutableBag::class, $chunked);
+        $this->assertInstanceOf($this->cls, $chunked);
         $this->assertNotSame($bag, $chunked);
         $this->assertCount(3, $chunked);
 
@@ -531,7 +550,7 @@ class ImmutableBagTest extends TestCase
 
     public function testReverse()
     {
-        $bag = new ImmutableBag(['a', 'b', 'c', 'd']);
+        $bag = $this->createBag(['a', 'b', 'c', 'd']);
 
         $actual = $bag->reverse();
 
@@ -540,7 +559,7 @@ class ImmutableBagTest extends TestCase
 
     public function testReversePreserveKeys()
     {
-        $bag = new ImmutableBag(['a', 'b', 'c', 'd']);
+        $bag = $this->createBag(['a', 'b', 'c', 'd']);
 
         $actual = $bag->reverse(true);
 
@@ -549,17 +568,26 @@ class ImmutableBagTest extends TestCase
 
     public function testShuffle()
     {
-        $bag = new ImmutableBag(['a', 'b', 'c', 'd']);
+        $bag = $this->createBag(['a', 'b', 'c', 'd']);
 
         $actual = $bag->shuffle();
 
-        $this->assertInstanceOf(ImmutableBag::class, $actual);
+        $this->assertInstanceOf($this->cls, $actual);
         $this->assertNotSame($bag, $actual);
-        $this->assertNotEquals($bag->toArray(), $actual->toArray());
 
         $sorted = $actual->toArray();
         sort($sorted);
         $this->assertEquals($bag->toArray(), $sorted);
+
+        // reduce odds that shuffle is produces same order.
+        for ($i = 0; $i < 10; ++$i) {
+            if ($bag->toArray() !== $actual->toArray()) {
+                break;
+            }
+            $actual = $bag->shuffle();
+        }
+
+        $this->assertNotEquals($bag->toArray(), $actual->toArray());
     }
 
     // endregion
@@ -568,14 +596,14 @@ class ImmutableBagTest extends TestCase
 
     public function testIterator()
     {
-        $bag = new ImmutableBag(['a', 'b', 'c', 'd']);
+        $bag = $this->createBag(['a', 'b', 'c', 'd']);
 
         $this->assertEquals(['a', 'b', 'c', 'd'], iterator_to_array($bag));
     }
 
     public function testJsonSerializable()
     {
-        $bag = new ImmutableBag(['a', 'b', 'c']);
+        $bag = $this->createBag(['a', 'b', 'c']);
 
         $this->assertEquals('["a","b","c"]', json_encode($bag));
     }
@@ -583,7 +611,7 @@ class ImmutableBagTest extends TestCase
     public function testOffsetExists()
     {
         $arr = ['foo' => 'bar', 'null' => null];
-        $bag = new ImmutableBag($arr);
+        $bag = $this->createBag($arr);
 
         $this->assertTrue(isset($bag['foo']));
         $this->assertTrue(isset($bag['null'])); // doesn't have PHPs stupid edge case.
@@ -594,7 +622,7 @@ class ImmutableBagTest extends TestCase
 
     public function testOffsetGet()
     {
-        $bag = new ImmutableBag(['foo' => 'bar']);
+        $bag = $this->createBag(['foo' => 'bar']);
 
         $this->assertEquals('bar', $bag['foo']);
         $this->assertNull($bag['nope']);
@@ -607,7 +635,7 @@ class ImmutableBagTest extends TestCase
             // we also don't know if it's being asked for by reference to throw an exception.
         }
 
-        $bag = new ImmutableBag(['arr' => ['1']]);
+        $bag = $this->createBag(['arr' => ['1']]);
 
         // Assert arrays are not able to be modified by reference.
         $errors = new \ArrayObject();
@@ -628,7 +656,7 @@ class ImmutableBagTest extends TestCase
      */
     public function testOffsetSet()
     {
-        $bag = new ImmutableBag();
+        $bag = $this->createBag();
 
         $bag['foo'] = 'bar';
     }
@@ -639,14 +667,14 @@ class ImmutableBagTest extends TestCase
      */
     public function testOffsetUnset()
     {
-        $bag = new ImmutableBag(['foo' => 'bar']);
+        $bag = $this->createBag(['foo' => 'bar']);
 
         unset($bag['foo']);
     }
 
     public function testDebugInfo()
     {
-        $bag = new ImmutableBag(['foo' => 'bar']);
+        $bag = $this->createBag(['foo' => 'bar']);
 
         $this->assertEquals($bag->toArray(), $bag->__debugInfo());
         $this->assertEquals('bar', $bag->foo);
@@ -663,7 +691,7 @@ class ImmutableBagTest extends TestCase
      */
     protected function assertBagResult($expected, $initialBag, $actualBag)
     {
-        $this->assertInstanceOf(ImmutableBag::class, $actualBag);
+        $this->assertInstanceOf($this->cls, $actualBag);
         $this->assertNotSame($initialBag, $actualBag);
         $this->assertEquals($expected, $actualBag->toArray());
     }

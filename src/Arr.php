@@ -222,6 +222,10 @@ class Arr
                     $current[$key] = $value;
                 }
             } elseif (isset($current[$key])) {
+                if ($current instanceof Bag) {
+                    Deprecated::warn('Mutating items in a ' . Bag::class, 1.1, 'Use a ' . MutableBag::class . ' instead.');
+                }
+
                 $current = &$current[$key];
             } elseif (!static::canReturnArraysByReference($current)) {
                 throw new RuntimeException(
@@ -234,6 +238,10 @@ class Arr
                     )
                 );
             } else {
+                if ($current instanceof Bag) {
+                    Deprecated::warn('Mutating items in a ' . Bag::class, 1.1, 'Use a ' . MutableBag::class . ' instead.');
+                }
+
                 $current[$key] = [];
                 $current = &$current[$key];
             }
