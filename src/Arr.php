@@ -380,6 +380,14 @@ class Arr
     {
         Assert::isIterable($iterable);
 
+        // If internal method with one arg, like strtolower, limit to first arg so warning isn't triggered.
+        $ref = new \ReflectionFunction($callable);
+        if ($ref->isInternal() && $ref->getNumberOfParameters() === 1) {
+            $callable = function ($arg) use ($callable) {
+                return $callable($arg);
+            };
+        }
+
         return static::doMapRecursive($iterable, $callable);
     }
 
