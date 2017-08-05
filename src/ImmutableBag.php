@@ -465,6 +465,28 @@ class ImmutableBag implements ArrayAccess, Countable, IteratorAggregate, JsonSer
     }
 
     /**
+     * Returns a bag with the items that do not satisfy the predicate $callback, the opposite of {@see filter}.
+     *
+     * Keys are preserved, so lists could need to be re-indexed.
+     *
+     * @param callable $callback The predicate used for filtering. Function is passed (key, value).
+     *
+     * @return static
+     */
+    public function reject(callable $callback)
+    {
+        $items = [];
+
+        foreach ($this->items as $key => $value) {
+            if (!$callback($key, $value)) {
+                $items[$key] = $value;
+            }
+        }
+
+        return $this->createFrom($items);
+    }
+
+    /**
      * Returns a bag with falsely values filtered out.
      *
      * @return static
