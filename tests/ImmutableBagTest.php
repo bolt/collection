@@ -211,7 +211,7 @@ class ImmutableBagTest extends TestCase
         $this->assertEquals('first', $bag->first());
 
         $empty = $this->createBag();
-        $this->assertFalse($empty->first());
+        $this->assertNull($empty->first());
     }
 
     public function testLast()
@@ -220,7 +220,7 @@ class ImmutableBagTest extends TestCase
         $this->assertEquals('second', $bag->last());
 
         $empty = $this->createBag();
-        $this->assertFalse($empty->last());
+        $this->assertNull($empty->last());
     }
 
     public function testJoin()
