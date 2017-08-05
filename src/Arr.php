@@ -367,6 +367,51 @@ class Arr
     }
 
     /**
+     * Returns an array with the given $callable applied to each leaf value in the given $iterable.
+     *
+     * This converts all nested iterables to arrays.
+     *
+     * @param iterable $iterable
+     * @param callable $callable Function is passed ($value, $key)
+     *
+     * @return array
+     */
+    public static function mapRecursive($iterable, callable $callable)
+    {
+        Assert::isIterable($iterable);
+
+        // If internal method with one arg, like strtolower, limit to first arg so warning isn't triggered.
+        $ref = new \ReflectionFunction($callable);
+        if ($ref->isInternal() && $ref->getNumberOfParameters() === 1) {
+            $callable = function ($arg) use ($callable) {
+                return $callable($arg);
+            };
+        }
+
+        return static::doMapRecursive($iterable, $callable);
+    }
+
+    /**
+     * Internal method do actual recursion after args have been validated by main method.
+     *
+     * @param iterable $iterable
+     * @param callable $callable
+     *
+     * @return array
+     */
+    private static function doMapRecursive($iterable, callable $callable)
+    {
+        $mapped = [];
+        foreach ($iterable as $key => $value) {
+            $mapped[$key] = is_iterable($value) ?
+                static::doMapRecursive($value, $callable) :
+                $callable($value, $key);
+        }
+
+        return $mapped;
+    }
+
+    /**
      * Replaces values from second array into first array recursively.
      *
      * This differs from {@see array_replace_recursive} in a couple ways:

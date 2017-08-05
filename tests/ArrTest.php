@@ -402,6 +402,25 @@ class ArrTest extends TestCase
         $this->assertFalse(Arr::isAssociative('derp'));
     }
 
+    public function testMapRecursive()
+    {
+        $arr = [
+            'foo' => new \ArrayObject([
+                'bar' => 'HELLO',
+            ]),
+        ];
+
+        $actual = Arr::mapRecursive($arr, 'strtolower');
+
+        $expected = [
+            'foo' => [
+                'bar' => 'hello',
+            ],
+        ];
+
+        $this->assertSame($expected, $actual);
+    }
+
     public function provideReplaceRecursive()
     {
         return [
