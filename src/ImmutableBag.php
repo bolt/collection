@@ -322,6 +322,43 @@ class ImmutableBag implements ArrayAccess, Countable, IteratorAggregate, JsonSer
     // region Methods returning a new bag
 
     /**
+     * Calls the $callable with the items (array) as the first parameter which should return an iterable which is
+     * then converted to a bag. Any extra parameters passed in to this method are passed to the $callable after
+     * the items parameter.
+     *
+     * This allows for chain-ability with custom functionality.
+     *
+     * <br>
+     * Example:
+     *     Bag::from(['red', 'blue'])
+     *         ->call(function (array $colors) {
+     *             $colors[] = 'green';
+     *
+     *             return $colors;
+     *         })
+     *         ->join(', ');
+     *     // => "red, blue, green"
+     *
+     * <br>
+     * Example with args:
+     *     Bag::from(['red', 'blue'])->call('array_pad', 4, '');
+     *     // => Bag ['red', 'blue', '', '']
+     *
+     * @param callable $callable
+     * @param array    ...$args
+     *
+     * @return static
+     */
+    public function call(callable $callable, /*...*/$args = null)
+    {
+        // Optimized for no args. Argument unpacking is still faster once we get to use 5.6 syntax
+        $result = $args ? call_user_func_array($callable, [$this->items] + func_get_args()) : $callable($this->items);
+        // $result = $callable($this->items, ...$args);
+
+        return $this->createFrom(Arr::from($result));
+    }
+
+    /**
      * Returns a mutable bag with the items from this bag.
      *
      * @return MutableBag

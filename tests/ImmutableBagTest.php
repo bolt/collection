@@ -274,6 +274,23 @@ class ImmutableBagTest extends TestCase
 
     // region Methods returning a new bag
 
+    public function testCall()
+    {
+        $bag = $this->createBag(['red', 'blue']);
+
+        $result = $bag->call(
+            function (array $colors, $arg1) {
+                $colors[] = 'green';
+                $colors[] = $arg1;
+
+                return $colors;
+            },
+            'black'
+        );
+
+        $this->assertBagResult(['red', 'blue', 'green', 'black'], $bag, $result);
+    }
+
     public function testMutable()
     {
         $bag = $this->createBag(['foo' => 'bar']);
