@@ -4,6 +4,7 @@ namespace Bolt\Collection;
 
 use ArrayAccess;
 use BadMethodCallException;
+use Bolt\Common\Assert;
 use Bolt\Common\Deprecated;
 use Countable;
 use InvalidArgumentException;
@@ -228,20 +229,6 @@ class ImmutableBag implements ArrayAccess, Countable, IteratorAggregate, JsonSer
     }
 
     /**
-     * Gets the index/key of a given item. The comparison of two items is strict,
-     * that means not only the value but also the type must match.
-     * For objects this means reference equality.
-     *
-     * @param mixed $item The item to search for
-     *
-     * @return int|string|false The index or key of the item or false if the item was not found
-     */
-    public function indexOf($item)
-    {
-        return array_search($item, $this->items, true);
-    }
-
-    /**
      * Returns the first item in the list or null if empty.
      *
      * @return mixed|null
@@ -315,6 +302,181 @@ class ImmutableBag implements ArrayAccess, Countable, IteratorAggregate, JsonSer
     public function isIndexed()
     {
         return !$this->isAssociative();
+    }
+
+    /**
+     * Gets the first index/key of a given item. The comparison of two items is strict,
+     * that means not only the value but also the type must match.
+     * For objects this means they must be the same instance.
+     *
+     * @param mixed $item      The item to search for
+     * @param int   $fromIndex The starting index to search from.
+     *                         Can be negative to start from that far from the end of the array.
+     *                         If index is out of bounds, it will be moved to first/last index.
+     *
+     * @return int|string|null The index or key of the item or null if the item was not found
+     */
+    public function indexOf($item, $fromIndex = 0)
+    {
+        foreach ($this->iterateFromIndex($fromIndex) as $key => $value) {
+            if ($value === $item) {
+                return $key;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Gets the last index/key of a given item. The comparison of two items is strict,
+     * that means not only the value but also the type must match.
+     * For objects this means they must be the same instance.
+     *
+     * @param mixed $item      The item to search for
+     * @param int   $fromIndex The starting index to search from. Default is the last index.
+     *                         Can be negative to start from that far from the end of the array.
+     *                         If index is out of bounds, it will be moved to first/last index.
+     *
+     * @return int|string|null The index or key of the item or null if the item was not found
+     */
+    public function lastIndexOf($item, $fromIndex = null)
+    {
+        foreach ($this->iterateReverseFromIndex($fromIndex) as $key => $value) {
+            if ($value === $item) {
+                return $key;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Returns the first item that matches the predicate or null.
+     *
+     * @param callable $predicate Function is passed (value, key)
+     * @param int      $fromIndex The starting index to search from.
+     *                            Can be negative to start from that far from the end of the array.
+     *                            If index is out of bounds, it will be moved to first/last index.
+     *
+     * @return mixed|null
+     */
+    public function find(callable $predicate, $fromIndex = 0)
+    {
+        $index = $this->findKey($predicate, $fromIndex);
+
+        return $index !== null ? $this->items[$index] : null;
+    }
+
+    /**
+     * Returns the last item that matches the predicate or null.
+     *
+     * @param callable $predicate Function is passed (value, key)
+     * @param int      $fromIndex The starting index to search from.
+     *                            Can be negative to start from that far from the end of the array.
+     *                            If index is out of bounds, it will be moved to first/last index.
+     *
+     * @return mixed|null
+     */
+    public function findLast(callable $predicate, $fromIndex = null)
+    {
+        $index = $this->findLastKey($predicate, $fromIndex);
+
+        return $index !== null ? $this->items[$index] : null;
+    }
+
+    /**
+     * Returns the first key that matches the predicate or null.
+     *
+     * @param callable $predicate Function is passed (value, key)
+     * @param int      $fromIndex The starting index to search from.
+     *                            Can be negative to start from that far from the end of the array.
+     *                            If index is out of bounds, it will be moved to first/last index.
+     *
+     * @return mixed|null
+     */
+    public function findKey(callable $predicate, $fromIndex = 0)
+    {
+        foreach ($this->iterateFromIndex($fromIndex) as $key => $value) {
+            if ($predicate($value, $key)) {
+                return $key;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Returns the last key that matches the predicate or null.
+     *
+     * @param callable $predicate Function is passed (value, key)
+     * @param int      $fromIndex The starting index to search from.
+     *                            Can be negative to start from that far from the end of the array.
+     *                            If index is out of bounds, it will be moved to first/last index.
+     *
+     * @return mixed|null
+     */
+    public function findLastKey(callable $predicate, $fromIndex = null)
+    {
+        foreach ($this->iterateReverseFromIndex($fromIndex) as $key => $value) {
+            if ($predicate($value, $key)) {
+                return $key;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Iterate through the items starting at the given index.
+     *
+     * @param int $fromIndex The starting index to search from.
+     *                       Can be negative to start from that far from the end of the array.
+     *                       If index is out of bounds, it will be moved to first/last index.
+     *
+     * @return \Generator
+     */
+    private function iterateFromIndex($fromIndex)
+    {
+        Assert::integer($fromIndex);
+
+        $count = count($this->items);
+        $last = $count - 2;
+
+        $index = $fromIndex < 0 ? max($last + $fromIndex, -1) : min($fromIndex - 1, $last);
+
+        $keys = array_keys($this->items);
+
+        while (++$index < $count) {
+            $key = $keys[$index];
+            yield $key => $this->items[$key];
+        }
+    }
+
+    /**
+     * Reverse iterate through the items starting at the given index.
+     *
+     * @param int $fromIndex The starting index to search from. Default is the last index.
+     *                       Can be negative to start from that far from the end of the array.
+     *                       If index is out of bounds, it will be moved to first/last index.
+     *
+     * @return \Generator
+     */
+    private function iterateReverseFromIndex($fromIndex)
+    {
+        Assert::nullOrInteger($fromIndex);
+
+        $index = count($this->items);
+
+        if ($fromIndex !== null) {
+            $index = $fromIndex < 0 ? max($index + $fromIndex, 1) : min($fromIndex + 1, $index);
+        }
+
+        $keys = array_keys($this->items);
+
+        while (--$index >= 0) {
+            $key = $keys[$index];
+            yield $key => $this->items[$key];
+        }
     }
 
     // endregion
