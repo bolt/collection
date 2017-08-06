@@ -242,23 +242,23 @@ class ImmutableBag implements ArrayAccess, Countable, IteratorAggregate, JsonSer
     }
 
     /**
-     * Returns the first item in the list.
+     * Returns the first item in the list or null if empty.
      *
-     * @return mixed
+     * @return mixed|null
      */
     public function first()
     {
-        return reset($this->items);
+        return $this->items ? reset($this->items) : null;
     }
 
     /**
-     * Returns the last item in the list.
+     * Returns the last item in the list or null if empty.
      *
-     * @return mixed
+     * @return mixed|null
      */
     public function last()
     {
-        return end($this->items);
+        return $this->items ? end($this->items) : null;
     }
 
     /**
