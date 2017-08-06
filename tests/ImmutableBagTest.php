@@ -729,6 +729,148 @@ class ImmutableBagTest extends TestCase
 
     // endregion
 
+    // region Comparison Methods
+
+    public function testDiff()
+    {
+        $bag = $this->createBag(['foo', 'bar', 'baz']);
+
+        $actual = $bag->diff(['bar']);
+
+        $this->assertBagResult([0 => 'foo', 2 => 'baz'], $bag, $actual);
+    }
+
+    public function testDiffComparator()
+    {
+        $bag = $this->createBag(['foo', 'bar', 'baz']);
+
+        $actual = $bag->diff(['bar'], [$this, 'compareFirstTwoLetters']);
+
+        $this->assertBagResult(['foo'], $bag, $actual);
+    }
+
+    public function testDiffBy()
+    {
+        $bag = $this->createBag(['foo', 'bar', 'baz']);
+
+        $actual = $bag->diffBy(['bar'], [$this, 'getFirstTwoLetters']);
+
+        $this->assertBagResult(['foo'], $bag, $actual);
+    }
+
+    public function testDiffKeys()
+    {
+        $bag = $this->createBag(['foo' => 'red', 'bar' => 'blue', 'baz' => 'green']);
+
+        $actual = $bag->diffKeys(['bar' => 'black']);
+
+        $this->assertBagResult(['foo' => 'red', 'baz' => 'green'], $bag, $actual);
+    }
+
+    public function testDiffKeysComparator()
+    {
+        $bag = $this->createBag(['foo' => 'red', 'bar' => 'blue', 'baz' => 'green']);
+
+        $actual = $bag->diffKeys(['bar' => 'black'], [$this, 'compareFirstTwoLetters']);
+
+        $this->assertBagResult(['foo' => 'red'], $bag, $actual);
+    }
+
+    public function testDiffKeysBy()
+    {
+        $bag = $this->createBag(['foo' => 'red', 'bar' => 'blue', 'baz' => 'green']);
+
+        $actual = $bag->diffKeysBy(['bar' => 'black'], [$this, 'getFirstTwoLetters']);
+
+        $this->assertBagResult(['foo' => 'red'], $bag, $actual);
+    }
+
+    public function testIntersect()
+    {
+        $bag = $this->createBag(['foo', 'bar', 'baz']);
+
+        $actual = $bag->intersect(['bar', 'nope']);
+
+        $this->assertBagResult([1 => 'bar'], $bag, $actual);
+    }
+
+    public function testIntersectComparator()
+    {
+        $bag = $this->createBag(['foo', 'bar', 'baz']);
+
+        $actual = $bag->intersect(['bar', 'nope'], [$this, 'compareFirstTwoLetters']);
+
+        $this->assertBagResult([1 => 'bar', 2 => 'baz'], $bag, $actual);
+    }
+
+    public function testIntersectBy()
+    {
+        $bag = $this->createBag(['foo', 'bar', 'baz']);
+
+        $actual = $bag->intersectBy(['bar', 'nope'], [$this, 'getFirstTwoLetters']);
+
+        $this->assertBagResult([1 => 'bar', 2 => 'baz'], $bag, $actual);
+    }
+
+    public function testIntersectKeys()
+    {
+        $bag = $this->createBag(['foo' => 'red', 'bar' => 'blue', 'baz' => 'green']);
+
+        $actual = $bag->intersectKeys(['bar' => 'black', 'nope' => 'red']);
+
+        $this->assertBagResult(['bar' => 'blue'], $bag, $actual);
+    }
+
+    public function testIntersectKeysComparator()
+    {
+        $bag = $this->createBag(['foo' => 'red', 'bar' => 'blue', 'baz' => 'green']);
+
+        $actual = $bag->intersectKeys(['bar' => 'black', 'nope' => 'red'], [$this, 'compareNormal']);
+
+        $this->assertBagResult(['bar' => 'blue'], $bag, $actual);
+    }
+
+    public function testIntersectKeysBy()
+    {
+        $bag = $this->createBag(['foo' => 'red', 'bar' => 'blue', 'baz' => 'green']);
+
+        $identity = function ($item) {
+            return $item;
+        };
+
+        $actual = $bag->intersectKeysBy(['bar' => 'black', 'nope' => 'red'], $identity);
+
+        $this->assertBagResult(['bar' => 'blue'], $bag, $actual);
+    }
+
+    public function compareNormal($a, $b)
+    {
+        if ($a === $b) {
+            return 0;
+        }
+
+        return $a > $b ? 1 : -1;
+    }
+
+    public function compareFirstTwoLetters($a, $b)
+    {
+        $a = $this->getFirstTwoLetters($a);
+        $b = $this->getFirstTwoLetters($b);
+
+        if ($a === $b) {
+            return 0;
+        }
+
+        return $a > $b ? 1 : -1;
+    }
+
+    public function getFirstTwoLetters($item)
+    {
+        return substr($item, 0, 2);
+    }
+
+    // endregion
+
     // region Sorting Methods
 
     public function testReverse()
