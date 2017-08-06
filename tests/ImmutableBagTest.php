@@ -727,6 +727,33 @@ class ImmutableBagTest extends TestCase
         $this->assertBagResult([4 => 'e'], $bag, $chunked->get(2));
     }
 
+    public function testPadRight()
+    {
+        $bag = $this->createBag([1, 2]);
+
+        $padded = $bag->pad(4, null);
+
+        $this->assertBagResult([1, 2, null, null], $bag, $padded);
+    }
+
+    public function testPadLeft()
+    {
+        $bag = $this->createBag([1, 2]);
+
+        $padded = $bag->pad(-4, null);
+
+        $this->assertBagResult([null, null, 1, 2], $bag, $padded);
+    }
+
+    public function testPadNone()
+    {
+        $bag = $this->createBag([1, 2]);
+
+        $padded = $bag->pad(2, null);
+
+        $this->assertBagResult([1, 2], $bag, $padded);
+    }
+
     // endregion
 
     // region Comparison Methods
