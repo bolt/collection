@@ -15,22 +15,6 @@ class BagTest extends ImmutableBagTest
         return new Bag($items);
     }
 
-    // region Methods returning a new bag
-
-    public function testCountValues()
-    {
-        $bag = $this->createBag([
-            'red',
-            'red',
-            'blue',
-        ]);
-
-        $actual = $bag->countValues();
-        $this->assertBagResult(['red' => 2, 'blue' => 1], $bag, $actual);
-    }
-
-    // endregion
-
     // region Mutating Methods (Deprecated)
 
     /**

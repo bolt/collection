@@ -888,6 +888,16 @@ class ImmutableBag implements ArrayAccess, Countable, IteratorAggregate, JsonSer
         return $this->createFrom(array_pad($this->items, $size, $value));
     }
 
+    /**
+     * Returns a bag with values mapped to the number of times they are in the bag.
+     *
+     * @return static [value => count]
+     */
+    public function countValues()
+    {
+        return $this->createFrom(array_count_values($this->items));
+    }
+
     // endregion
 
     // region Comparison Methods
