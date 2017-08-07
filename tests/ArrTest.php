@@ -156,9 +156,11 @@ class ArrTest extends TestCase
             'array' => [
                 [
                     'foo'   => 'bar',
+                    'baz'   => 'remove',
                     'items' => [
                         'nested' => [
                             'hello' => 'world',
+                            'bye'   => 'earth',
                         ],
                         'obj' => new \EmptyIterator(),
                     ],
@@ -168,9 +170,11 @@ class ArrTest extends TestCase
             'array access' => [
                 new \ArrayObject([
                     'foo'   => 'bar',
+                    'baz'   => 'remove',
                     'items' => new \ArrayObject([
                         'nested' => new \ArrayObject([
                             'hello' => 'world',
+                            'bye'   => 'earth',
                         ]),
                         'obj' => new \EmptyIterator(),
                     ]),
@@ -180,9 +184,11 @@ class ArrTest extends TestCase
             'user array access' => [
                 new TestArrayLike([
                     'foo'   => 'bar',
+                    'baz'   => 'remove',
                     'items' => new TestArrayLike([
                         'nested' => new TestArrayLike([
                             'hello' => 'world',
+                            'bye'   => 'earth',
                         ]),
                         'obj' => new \EmptyIterator(),
                     ]),
@@ -192,9 +198,11 @@ class ArrTest extends TestCase
             'mixed' => [
                 [
                     'foo'   => 'bar',
+                    'baz'   => 'remove',
                     'items' => new \ArrayObject([
                         'nested' => [
                             'hello' => 'world',
+                            'bye'   => 'earth',
                         ],
                         'obj' => new \EmptyIterator(),
                     ]),
@@ -331,6 +339,20 @@ class ArrTest extends TestCase
         } else {
             $this->fail("Arr::set should've thrown a RuntimeException");
         }
+    }
+
+    /**
+     * @dataProvider provideGetSetHas
+     *
+     * @param array|\ArrayAccess $data
+     */
+    public function testRemove($data)
+    {
+        $this->assertSame('remove', Arr::remove($data, 'baz', 'default'));
+        $this->assertSame('default', Arr::remove($data, 'baz', 'default'));
+
+        $this->assertSame('earth', Arr::remove($data, 'items/nested/bye', 'default'));
+        $this->assertSame('default', Arr::remove($data, 'items/nested/bye', 'default'));
     }
 
     public function testIsAccessible()
