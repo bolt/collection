@@ -862,6 +862,32 @@ class ImmutableBag implements ArrayAccess, Countable, IteratorAggregate, JsonSer
         return $this->createFrom(array_map($create, array_chunk($this->items, $size, $preserveKeys)));
     }
 
+    /**
+     * Returns a bag with the items padded to the given size with the given value.
+     *
+     * If size is positive then the array is padded on the right.
+     * If it's negative then on the left.
+     *
+     * Examples:
+     *     Bag::from([1, 2])->pad(4, null);
+     *     // => Bag of [1, 2, null, null]
+     *
+     *     Bag::from([1, 2])->pad(-4, null);
+     *     // => Bag of [null, null, 1, 2]
+     *
+     *     Bag::from([1, 2])->pad(2, null);
+     *     // => Bag of [1, 2]
+     *
+     * @param int   $size
+     * @param mixed $value
+     *
+     * @return static
+     */
+    public function pad($size, $value)
+    {
+        return $this->createFrom(array_pad($this->items, $size, $value));
+    }
+
     // endregion
 
     // region Comparison Methods
