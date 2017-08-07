@@ -893,6 +893,46 @@ class ImmutableBag implements ArrayAccess, Countable, IteratorAggregate, JsonSer
     // region Comparison Methods
 
     /**
+     * Returns a bag containing only the key value pairs whose keys are in given.
+     *
+     * Keys can be an array as one argument or passed in directly as multiple arguments.
+     *
+     * Example:
+     *     $bag = Bag::from(['a' => 'red', 'b' => 'blue', 'c' => 'green']);
+     *     $bag->pick('a', 'c');
+     *     // => Bag of ['a' => 'red', 'c' => 'green']
+     *
+     * @param string|string[]|int|int[] ...$keys The keys to keep
+     *
+     * @return static
+     */
+    public function pick($keys)
+    {
+        // Remove accepting array as first argument once destructuring arrays is supported (PHP 5.6)
+        return $this->intersectKeys(array_flip(is_iterable($keys) ? $keys : func_get_args()));
+    }
+
+    /**
+     * Returns a bag without the key value pairs whose keys are in given.
+     *
+     * Keys can be an array as one argument or passed in directly as multiple arguments.
+     *
+     * Example:
+     *     $bag = Bag::from(['a' => 'red', 'b' => 'blue', 'c' => 'green']);
+     *     $bag->omit('a', 'c');
+     *     // => Bag of ['b' => 'blue']
+     *
+     * @param string|string[]|int|int[] ...$keys The keys to remove
+     *
+     * @return static
+     */
+    public function omit($keys)
+    {
+        // Remove accepting array as first argument once destructuring arrays is supported (PHP 5.6)
+        return $this->diffKeys(array_flip(is_iterable($keys) ? $keys : func_get_args()));
+    }
+
+    /**
      * Computes the difference of the given collection using values for comparison.
      *
      * The order is determined by the first array.
