@@ -1044,6 +1044,78 @@ class ImmutableBagTest extends TestCase
         $this->assertBagResult([0 => 'blue', 2 => 'black', 1 => 'red'], $bag, $sorted);
     }
 
+    public function testSortValuesByAsc()
+    {
+        $bag = $this->createBag(
+            [
+                ['name' => 'Bob'],
+                ['name' => 'Carson'],
+                ['name' => 'Alice'],
+            ]
+        );
+
+        $sorted = $bag->sortBy(
+            function ($item) {
+                return $item['name'];
+            }
+        );
+
+        $expected = [
+            ['name' => 'Alice'],
+            ['name' => 'Bob'],
+            ['name' => 'Carson'],
+        ];
+
+        $this->assertBagResult($expected, $bag, $sorted);
+    }
+
+    public function testSortValuesByDesc()
+    {
+        $bag = $this->createBag(
+            [
+                ['name' => 'Bob'],
+                ['name' => 'Carson'],
+                ['name' => 'Alice'],
+            ]
+        );
+
+        $sorted = $bag->sortBy(
+            function ($item) {
+                return $item['name'];
+            },
+            SORT_DESC
+        );
+
+        $expected = [
+            ['name' => 'Carson'],
+            ['name' => 'Bob'],
+            ['name' => 'Alice'],
+        ];
+
+        $this->assertBagResult($expected, $bag, $sorted);
+    }
+
+    public function testSortValuesByPreserveKeys()
+    {
+        $bag = $this->createBag(['blue', 'red', 'black']);
+
+        $sorted = $bag->sortWith(
+            function ($a, $b) {
+                $a = $a[0];
+                $b = $b[0];
+
+                if ($a === $b) {
+                    return 0;
+                }
+
+                return $a > $b ? 1 : -1;
+            },
+            true
+        );
+
+        $this->assertBagResult([0 => 'blue', 2 => 'black', 1 => 'red'], $bag, $sorted);
+    }
+
     public function testSortKeysAsc()
     {
         $bag = $this->createBag(['c' => 1, 'd' => 2, 'b' => 3, 'a' => 4]);
@@ -1080,6 +1152,33 @@ class ImmutableBagTest extends TestCase
         );
 
         $this->assertBagResult(['blue' => 'a', 'black' => 'c', 'red' => 'b'], $bag, $sorted);
+    }
+
+    public function testSortKeysByAsc()
+    {
+        $bag = $this->createBag(['blue' => 'a', 'red' => 'b', 'black' => 'c']);
+
+        $sorted = $bag->sortKeysBy(
+            function ($key) {
+                return $key[0];
+            }
+        );
+
+        $this->assertBagResult(['blue' => 'a', 'black' => 'c', 'red' => 'b'], $bag, $sorted);
+    }
+
+    public function testSortKeysByDesc()
+    {
+        $bag = $this->createBag(['blue' => 'a', 'red' => 'b', 'black' => 'c']);
+
+        $sorted = $bag->sortKeysBy(
+            function ($key) {
+                return $key[0];
+            },
+            SORT_DESC
+        );
+
+        $this->assertBagResult(['red' => 'b', 'blue' => 'a', 'black' => 'c'], $bag, $sorted);
     }
 
     public function testReverse()

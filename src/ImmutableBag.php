@@ -1094,12 +1094,13 @@ class ImmutableBag implements ArrayAccess, Countable, IteratorAggregate, JsonSer
      * for both values being compared before comparing them.
      *
      * @param callable $iteratee
+     * @param bool     $ascending
      *
      * @return \Closure
      */
-    private function iterateeToComparator(callable $iteratee)
+    private function iterateeToComparator(callable $iteratee, $ascending = true)
     {
-        return function ($a, $b) use ($iteratee) {
+        return function ($a, $b) use ($iteratee, $ascending) {
             // PHP 7.0
             // return $iteratee($a) <=> $iteratee($b);
 
@@ -1110,7 +1111,11 @@ class ImmutableBag implements ArrayAccess, Countable, IteratorAggregate, JsonSer
                 return 0;
             }
 
-            return $a > $b ? 1 : -1;
+            if ($ascending) {
+                return $a > $b ? 1 : -1;
+            }
+
+            return $a > $b ? -1 : 1;
         };
     }
 
@@ -1162,6 +1167,33 @@ class ImmutableBag implements ArrayAccess, Countable, IteratorAggregate, JsonSer
     }
 
     /**
+     * This method is like {@see sortWith} except that it accepts an $iteratee which is invoked for each value
+     * to generate the criterion by which they're compared.
+     *
+     * Example:
+     * <code>
+     * $bag = Bag::from([
+     *     ['name' => 'Bob'],
+     *     ['name' => 'Alice'],
+     * ]);
+     *
+     * // Sort values by "name" property
+     * $bag->sortBy(function ($item) { return $item['name']; });
+     * // Bag of [['name' => 'Alice], ['name' => 'Bob']]
+     * </code>
+     *
+     * @param callable $iteratee     Function given ($value)
+     * @param int      $order        SORT_ASC or SORT_DESC
+     * @param bool     $preserveKeys Whether to preserve keys for maps or to re-index for lists
+     *
+     * @return static
+     */
+    public function sortBy(callable $iteratee, $order = SORT_ASC, $preserveKeys = false)
+    {
+        return $this->sortWith($this->iterateeToComparator($iteratee, $order === SORT_ASC), $preserveKeys);
+    }
+
+    /**
      * Returns a bag with the values sorted with the given $comparator.
      *
      * @param callable $comparator   Comparator function given ($itemA, $itemB)
@@ -1210,6 +1242,35 @@ class ImmutableBag implements ArrayAccess, Countable, IteratorAggregate, JsonSer
         }
 
         return $this->createFrom($items);
+    }
+
+    /**
+     * This method is like {@see sortKeysWith} except that it accepts an $iteratee which is invoked for each key
+     * to generate the criterion by which they're compared.
+     *
+     * Example:
+     * <code>
+     * $bag = Bag::from([
+     *     'blue'  => 'a',
+     *     'red'   => 'b',
+     *     'black' => 'c',
+     * ]);
+     *
+     * // Sort keys by first letter
+     * $bag->sortKeysBy(function ($key) {
+     *     return $key[0];
+     * });
+     * // Bag of ['blue' => 'a', 'black' => 'c', 'red' => 'b']
+     * </code>
+     *
+     * @param callable $iteratee Function given ($key)
+     * @param int      $order    SORT_ASC or SORT_DESC
+     *
+     * @return static
+     */
+    public function sortKeysBy(callable $iteratee, $order = SORT_ASC)
+    {
+        return $this->sortKeysWith($this->iterateeToComparator($iteratee, $order === SORT_ASC));
     }
 
     /**
