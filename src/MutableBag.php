@@ -104,6 +104,33 @@ class MutableBag extends Bag
     }
 
     /**
+     * Removes and returns a value at the path given.
+     *
+     * This function does not support keys that contain "/" or "[]" characters
+     * because these are special tokens used when traversing the data structure.
+     *
+     * Example:
+     *     removePath('foo/bar');
+     *     // => 'baz'
+     *     removePath('foo/bar');
+     *     // => null
+     *
+     * Note: To set values not directly under ArrayAccess objects their
+     * offsetGet() method needs to be defined as return by reference.
+     *
+     *     public function &offsetGet($offset) {}
+     *
+     * @param string     $path    Path to traverse and remove the value at
+     * @param mixed|null $default Default value to return if key does not exist
+     *
+     * @return mixed
+     */
+    public function removePath($path, $default = null)
+    {
+        return Arr::remove($this->items, $path, $default);
+    }
+
+    /**
      * Removes the given item from the bag if it is found.
      *
      * @param mixed $item
