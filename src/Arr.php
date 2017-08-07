@@ -522,6 +522,52 @@ class Arr
     }
 
     /**
+     * Flattens an iterable.
+     *
+     * Example:
+     *     Arr::flatten([1, [2, 3], [4]])
+     *     // => [1, 2, 3, 4]
+     *
+     * @param iterable $iterable The iterable to flatten
+     * @param int      $depth    How deep to flatten
+     *
+     * @return array
+     */
+    public static function flatten($iterable, $depth = 1)
+    {
+        Assert::isIterable($iterable);
+
+        return static::doFlatten(
+            $iterable,
+            $depth,
+            'is_iterable' // This may be more configurable in the future.
+        );
+    }
+
+    /**
+     * Internal method to do actual flatten recursion after args have been validated by main method.
+     *
+     * @param iterable $iterable  The iterable to flatten
+     * @param int      $depth     How deep to flatten
+     * @param callable $predicate Whether to recurse the item
+     * @param array    $result    The result array
+     *
+     * @return array
+     */
+    private static function doFlatten($iterable, $depth, callable $predicate, array $result = [])
+    {
+        foreach ($iterable as $item) {
+            if ($depth >= 1 && $predicate($item)) {
+                $result = static::doFlatten($item, $depth - 1, $predicate, $result);
+            } else {
+                $result[] = $item;
+            }
+        }
+
+        return $result;
+    }
+
+    /**
      * Private Constructor.
      *
      * @codeCoverageIgnore

@@ -495,4 +495,18 @@ class ArrTest extends TestCase
     {
         $this->assertEquals($result, Arr::replaceRecursive($array1, $array2));
     }
+
+    public function testFlatten()
+    {
+        $result = Arr::flatten([[1, 2], [[3]], 4]);
+
+        $this->assertSame([1, 2, [3], 4], $result);
+    }
+
+    public function testFlattenDeep()
+    {
+        $result = Arr::flatten([[1, 2], [[3]], 4], INF);
+
+        $this->assertSame([1, 2, 3, 4], $result);
+    }
 }

@@ -754,6 +754,15 @@ class ImmutableBagTest extends TestCase
         $this->assertBagResult([1, 2], $bag, $padded);
     }
 
+    public function testFlatten()
+    {
+        $bag = $this->createBag([[1, 2], [[3]], 4]);
+
+        $result = $bag->flatten();
+
+        $this->assertBagResult([1, 2, [3], 4], $bag, $result);
+    }
+
     // endregion
 
     // region Comparison Methods
