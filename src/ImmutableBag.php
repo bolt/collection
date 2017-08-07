@@ -479,6 +479,30 @@ class ImmutableBag implements ArrayAccess, Countable, IteratorAggregate, JsonSer
         }
     }
 
+    /**
+     * Returns a random value.
+     *
+     * @throws \InvalidArgumentException when the bag is empty
+     *
+     * @return mixed
+     */
+    public function randomValue()
+    {
+        return $this->randomValues(1)->first();
+    }
+
+    /**
+     * Returns a random key.
+     *
+     * @throws \InvalidArgumentException when the bag is empty
+     *
+     * @return mixed
+     */
+    public function randomKey()
+    {
+        return $this->randomKeys(1)->first();
+    }
+
     // endregion
 
     // region Methods returning a new bag
@@ -912,6 +936,39 @@ class ImmutableBag implements ArrayAccess, Countable, IteratorAggregate, JsonSer
     public function flatten($depth = 1)
     {
         return $this->createFrom(Arr::flatten($this->items, $depth));
+    }
+
+    /**
+     * Returns a bag with a random number of key/value pairs.
+     *
+     * @param int $size Number of pairs
+     *
+     * @throws \InvalidArgumentException when the bag is empty or the given $size is greater than the number of items
+     *
+     * @return static
+     */
+    public function randomValues($size)
+    {
+        $keys = $this->randomKeys($size);
+
+        return $keys->isEmpty() ? $keys : $this->pick($keys);
+    }
+
+    /**
+     * Returns a list with a random number of keys (as values).
+     *
+     * @param int $size Number of keys
+     *
+     * @throws \InvalidArgumentException when the bag is empty or the given $size is greater than the number of items
+     *
+     * @return static
+     */
+    public function randomKeys($size)
+    {
+        Assert::notEmpty($this->items, 'Cannot retrieve a random key/value for empty bags.');
+        Assert::range($size, 1, $this->count(), 'Expected $size to be between 1 and %3$s (the number of items in the bag). Got: %s');
+
+        return $this->createFrom((array) array_rand($this->items, $size));
     }
 
     // endregion
