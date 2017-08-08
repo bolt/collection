@@ -770,6 +770,28 @@ class ImmutableBagTest extends TestCase
 
     // region Comparison Methods
 
+    public function testPick()
+    {
+        $bag = $this->createBag(['a' => 'red', 'b' => 'blue', 'c' => 'green']);
+
+        $actual = $bag->pick('a', 'c');
+        $this->assertBagResult(['a' => 'red', 'c' => 'green'], $bag, $actual);
+
+        $actual = $bag->pick(['a', 'c']);
+        $this->assertBagResult(['a' => 'red', 'c' => 'green'], $bag, $actual);
+    }
+
+    public function testOmit()
+    {
+        $bag = $this->createBag(['a' => 'red', 'b' => 'blue', 'c' => 'green']);
+
+        $actual = $bag->omit('a', 'c');
+        $this->assertBagResult(['b' => 'blue'], $bag, $actual);
+
+        $actual = $bag->omit(['a', 'c']);
+        $this->assertBagResult(['b' => 'blue'], $bag, $actual);
+    }
+
     public function testDiff()
     {
         $bag = $this->createBag(['foo', 'bar', 'baz']);
