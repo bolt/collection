@@ -1671,3 +1671,6 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
 
     // endregion
 }
+
+// Alias class for BC. Alias is needed, instead of subclassing, so `Bag instanceof ImmutableBag` works.
+class_alias(Bag::class, ImmutableBag::class);
