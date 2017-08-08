@@ -756,14 +756,25 @@ class ImmutableBagTest extends TestCase
 
     public function testCountValues()
     {
-        $bag = $this->createBag([
-            'red',
-            'red',
-            'blue',
-        ]);
+        $bag = $this->createBag(
+            [
+                'red',
+                'red',
+                'blue',
+            ]
+        );
 
         $actual = $bag->countValues();
         $this->assertBagResult(['red' => 2, 'blue' => 1], $bag, $actual);
+    }
+
+    public function testFlatten()
+    {
+        $bag = $this->createBag([[1, 2], [[3]], 4]);
+
+        $result = $bag->flatten();
+
+        $this->assertBagResult([1, 2, [3], 4], $bag, $result);
     }
 
     // endregion

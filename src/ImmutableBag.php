@@ -898,6 +898,22 @@ class ImmutableBag implements ArrayAccess, Countable, IteratorAggregate, JsonSer
         return $this->createFrom(array_count_values($this->items));
     }
 
+    /**
+     * Returns a bag with the items flattened.
+     *
+     * Example:
+     *     Bag::from([1, [2, 3], [4]])->flatten()
+     *     // => Bag of [1, 2, 3, 4]
+     *
+     * @param int $depth How deep to flatten
+     *
+     * @return static
+     */
+    public function flatten($depth = 1)
+    {
+        return $this->createFrom(Arr::flatten($this->items, $depth));
+    }
+
     // endregion
 
     // region Comparison Methods
