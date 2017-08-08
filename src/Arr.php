@@ -16,6 +16,8 @@ use Traversable;
  */
 class Arr
 {
+    private static $unsetMarker;
+
     /**
      * Converts an iterable, null, or stdClass to an array.
      *
@@ -246,6 +248,8 @@ class Arr
         if (count($queue) === 1) {
             if ($path === '[]') {
                 $data[] = $value;
+            } elseif (static::$unsetMarker && $value === static::$unsetMarker) {
+                unset($data[$path]);
             } else {
                 $data[$path] = $value;
             }
@@ -268,6 +272,8 @@ class Arr
             if (!$queue) {
                 if ($key === '[]') {
                     $current[] = $value;
+                } elseif (static::$unsetMarker && $value === static::$unsetMarker) {
+                    unset($current[$key]);
                 } else {
                     $current[$key] = $value;
                 }
@@ -297,6 +303,54 @@ class Arr
             }
             $invalidKey = $key;
         }
+    }
+
+    /**
+     * Removes a value from an array (or ArrayAccess object) using a path syntax to retrieve nested data and returns it.
+     *
+     * This function does not support keys that contain "/" or "[]" characters
+     * because these are special tokens used when traversing the data structure.
+     *
+     * Example:
+     *     remove($data, 'foo/bar');
+     *     // => 'baz'
+     *     remove($data, 'foo/bar');
+     *     // => null
+     *
+     *
+     * Note: To set values not directly under ArrayAccess objects their
+     * offsetGet() method needs to be defined as return by reference.
+     *
+     *     public function &offsetGet($offset) {}
+     *
+     * @param array|ArrayAccess $data    Data to retrieve remove value from
+     * @param string            $path    Path to traverse
+     * @param mixed|null        $default Default value to return if key does not exist
+     *
+     * @return mixed
+     */
+    public static function remove(&$data, $path, $default = null)
+    {
+        if (!static::$unsetMarker) {
+            static::$unsetMarker = new \stdClass();
+        }
+
+        // Call get() with special default value so we can know if the key exists without calling has()
+        $value = static::get($data, $path, static::$unsetMarker);
+
+        /*
+         * If the path doesn't exist don't call set().
+         * This also prevents set() from creating middle arrays to get to the leaf node,
+         * which doesn't make sense in this case since we are just trying to remove the leaf node.
+         */
+        if ($value === static::$unsetMarker) {
+            return $default;
+        }
+
+        // Set with special marker to unset value at path
+        static::set($data, $path, static::$unsetMarker);
+
+        return $value;
     }
 
     /**
