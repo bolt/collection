@@ -528,7 +528,12 @@ class Arr
             return true;
         }
 
-        static $supportedClasses = [];
+        static $supportedClasses = [
+            // Add our classes by default to help with performance since we can
+            ImmutableBag::class => false,
+            Bag::class          => true, // but deprecated
+            MutableBag::class   => true,
+        ];
 
         $class = get_class($obj);
         if (isset($supportedClasses[$class])) {
