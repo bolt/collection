@@ -928,14 +928,14 @@ class ImmutableBag implements ArrayAccess, Countable, IteratorAggregate, JsonSer
      *     $bag->pick('a', 'c');
      *     // => Bag of ['a' => 'red', 'c' => 'green']
      *
-     * @param string|string[]|int|int[] ...$keys The keys to keep
+     * @param iterable|string|string[]|int|int[] ...$keys The keys to keep
      *
      * @return static
      */
     public function pick($keys)
     {
         // Remove accepting array as first argument once destructuring arrays is supported (PHP 5.6)
-        return $this->intersectKeys(array_flip(is_iterable($keys) ? $keys : func_get_args()));
+        return $this->intersectKeys(array_flip(is_iterable($keys) ? Arr::from($keys) : func_get_args()));
     }
 
     /**
@@ -948,14 +948,14 @@ class ImmutableBag implements ArrayAccess, Countable, IteratorAggregate, JsonSer
      *     $bag->omit('a', 'c');
      *     // => Bag of ['b' => 'blue']
      *
-     * @param string|string[]|int|int[] ...$keys The keys to remove
+     * @param iterable|string|string[]|int|int[] ...$keys The keys to remove
      *
      * @return static
      */
     public function omit($keys)
     {
         // Remove accepting array as first argument once destructuring arrays is supported (PHP 5.6)
-        return $this->diffKeys(array_flip(is_iterable($keys) ? $keys : func_get_args()));
+        return $this->diffKeys(array_flip(is_iterable($keys) ? Arr::from($keys) : func_get_args()));
     }
 
     /**

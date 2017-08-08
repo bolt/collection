@@ -790,6 +790,9 @@ class ImmutableBagTest extends TestCase
 
         $actual = $bag->pick(['a', 'c']);
         $this->assertBagResult(['a' => 'red', 'c' => 'green'], $bag, $actual);
+
+        $actual = $bag->pick($this->createBag(['a', 'c']));
+        $this->assertBagResult(['a' => 'red', 'c' => 'green'], $bag, $actual);
     }
 
     public function testOmit()
@@ -800,6 +803,9 @@ class ImmutableBagTest extends TestCase
         $this->assertBagResult(['b' => 'blue'], $bag, $actual);
 
         $actual = $bag->omit(['a', 'c']);
+        $this->assertBagResult(['b' => 'blue'], $bag, $actual);
+
+        $actual = $bag->omit($this->createBag(['a', 'c']));
         $this->assertBagResult(['b' => 'blue'], $bag, $actual);
     }
 
