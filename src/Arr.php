@@ -74,9 +74,9 @@ class Arr
      * Optionally, an $indexKey may be provided to index the values in the returned array by the
      * values from the $indexKey column in the input array.
      *
-     * @param Traversable|array $input     A list of arrays or objects from which to pull a column of values
-     * @param string|int        $columnKey The column of values to return
-     * @param string|int|null   $indexKey  The column to use as the index/keys for the returned array
+     * @param iterable        $input     A list of arrays or objects from which to pull a column of values
+     * @param string|int      $columnKey The column of values to return
+     * @param string|int|null $indexKey  The column to use as the index/keys for the returned array
      *
      * @return array
      */
@@ -386,7 +386,7 @@ class Arr
      *
      * Note: Empty arrays are not.
      *
-     * @param Traversable|array $array
+     * @param iterable $array
      *
      * @return bool
      */
@@ -407,7 +407,7 @@ class Arr
      *
      * Note: Empty arrays are.
      *
-     * @param Traversable|array $array
+     * @param iterable $array
      *
      * @return bool
      */
@@ -475,8 +475,8 @@ class Arr
      *
      * This method converts all traversable objects at any level to arrays in the return value.
      *
-     * @param Traversable|array $array1
-     * @param Traversable|array $array2
+     * @param iterable $array1
+     * @param iterable $array2
      *
      * @return array The combined array
      */
