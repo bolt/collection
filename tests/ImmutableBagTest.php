@@ -4,7 +4,6 @@ namespace Bolt\Collection\Tests;
 
 use ArrayObject;
 use Bolt\Collection\Bag;
-use Bolt\Collection\ImmutableBag;
 use Bolt\Collection\MutableBag;
 use PHPUnit\Framework\TestCase;
 
@@ -13,12 +12,12 @@ use PHPUnit\Framework\TestCase;
  */
 class ImmutableBagTest extends TestCase
 {
-    /** @var string|ImmutableBag class used for static creation methods and instance of assertions */
-    protected $cls = ImmutableBag::class;
+    /** @var string|Bag class used for static creation methods and instance of assertions */
+    protected $cls = Bag::class;
 
     protected function createBag($items = [])
     {
-        return new ImmutableBag($items);
+        return new Bag($items);
     }
 
     // region Creation / Unwrapping Methods
@@ -64,12 +63,12 @@ class ImmutableBagTest extends TestCase
         $this->assertEquals('bar', $bagArr['foo']);
 
         $this->assertInstanceOf($cls, $bagArr['items']);
-        /** @var ImmutableBag $items */
+        /** @var Bag $items */
         $items = $bagArr['items'];
         $this->assertEquals(['hello' => 'world'], $items->toArray());
 
         $this->assertInstanceOf($cls, $bagArr['std class']);
-        /** @var ImmutableBag $stdClass */
+        /** @var Bag $stdClass */
         $stdClass = $bagArr['std class'];
         $this->assertEquals(['why use' => 'these'], $stdClass->toArray());
     }
@@ -1320,12 +1319,12 @@ class ImmutableBagTest extends TestCase
 
         restore_error_handler();
 
-        $this->assertEquals([[E_NOTICE, 'Indirect modification of overloaded element of Bolt\Collection\ImmutableBag has no effect']], $errors->getArrayCopy());
+        $this->assertEquals([[E_NOTICE, 'Indirect modification of overloaded element of Bolt\Collection\Bag has no effect']], $errors->getArrayCopy());
     }
 
     /**
      * @expectedException \BadMethodCallException
-     * @expectedExceptionMessage Cannot modify items on an Bolt\Collection\ImmutableBag
+     * @expectedExceptionMessage Cannot modify items on an Bolt\Collection\Bag
      */
     public function testOffsetSet()
     {
@@ -1336,7 +1335,7 @@ class ImmutableBagTest extends TestCase
 
     /**
      * @expectedException \BadMethodCallException
-     * @expectedExceptionMessage Cannot remove items from an Bolt\Collection\ImmutableBag
+     * @expectedExceptionMessage Cannot remove items from an Bolt\Collection\Bag
      */
     public function testOffsetUnset()
     {
@@ -1356,11 +1355,11 @@ class ImmutableBagTest extends TestCase
     // endregion
 
     /**
-     * Assert $actualBag is an ImmutableBag that's a different instance from $initialBag and its items equal $expected.
+     * Assert $actualBag is an Bag that's a different instance from $initialBag and its items equal $expected.
      *
-     * @param array        $expected
-     * @param ImmutableBag $initialBag
-     * @param ImmutableBag $actualBag
+     * @param array $expected
+     * @param Bag   $initialBag
+     * @param Bag   $actualBag
      */
     protected function assertBagResult($expected, $initialBag, $actualBag)
     {

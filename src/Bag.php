@@ -19,7 +19,7 @@ use stdClass;
  *
  * @author Carson Full <carsonfull@gmail.com>
  */
-class ImmutableBag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
+class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
 {
     /** @var array */
     protected $items;
@@ -555,7 +555,7 @@ class ImmutableBag implements ArrayAccess, Countable, IteratorAggregate, JsonSer
      */
     public function immutable()
     {
-        return new Bag($this->items);
+        return new self($this->items);
     }
 
     /**
