@@ -1094,12 +1094,13 @@ class ImmutableBag implements ArrayAccess, Countable, IteratorAggregate, JsonSer
      * for both values being compared before comparing them.
      *
      * @param callable $iteratee
+     * @param bool     $ascending
      *
      * @return \Closure
      */
-    private function iterateeToComparator(callable $iteratee)
+    private function iterateeToComparator(callable $iteratee, $ascending = true)
     {
-        return function ($a, $b) use ($iteratee) {
+        return function ($a, $b) use ($iteratee, $ascending) {
             // PHP 7.0
             // return $iteratee($a) <=> $iteratee($b);
 
@@ -1110,13 +1111,206 @@ class ImmutableBag implements ArrayAccess, Countable, IteratorAggregate, JsonSer
                 return 0;
             }
 
-            return $a > $b ? 1 : -1;
+            if ($ascending) {
+                return $a > $b ? 1 : -1;
+            }
+
+            return $a > $b ? -1 : 1;
         };
     }
 
     // endregion
 
     // region Sorting Methods
+
+    /**
+     * Returns a bag with the values sorted.
+     *
+     * Sorting flags:
+     * <pre>
+     *  - SORT_REGULAR                  - compare values without changing types
+     *  - SORT_NUMERIC                  - compare values numerically
+     *  - SORT_STRING                   - compare values as strings
+     *  - SORT_STRING | SORT_FLAG_CASE  - compare values as strings ignoring case
+     *  - SORT_LOCALE_STRING            - compare values as strings based on the current locale
+     *  - SORT_NATURAL                  - compare values as strings using "natural ordering"
+     *  - SORT_NATURAL | SORT_FLAG_CASE - compare values as strings using "natural ordering" ignoring case
+     * </pre>
+     *
+     * @param int  $order        SORT_ASC or SORT_DESC
+     * @param int  $flags        Sorting flags to modify the behavior
+     * @param bool $preserveKeys Whether to preserve keys for maps or to re-index for lists
+     *
+     * @return static
+     */
+    public function sort($order = SORT_ASC, $flags = SORT_REGULAR, $preserveKeys = false)
+    {
+        $this->validateSortArgs($order, $flags);
+
+        $items = $this->items;
+
+        if (!$preserveKeys) {
+            if ($order === SORT_ASC) {
+                sort($items, $flags);
+            } elseif ($order === SORT_DESC) {
+                rsort($items, $flags);
+            }
+        } else {
+            if ($order === SORT_ASC) {
+                asort($items, $flags);
+            } elseif ($order === SORT_DESC) {
+                arsort($items, $flags);
+            }
+        }
+
+        return $this->createFrom($items);
+    }
+
+    /**
+     * This method is like {@see sortWith} except that it accepts an $iteratee which is invoked for each value
+     * to generate the criterion by which they're compared.
+     *
+     * Example:
+     * <code>
+     * $bag = Bag::from([
+     *     ['name' => 'Bob'],
+     *     ['name' => 'Alice'],
+     * ]);
+     *
+     * // Sort values by "name" property
+     * $bag->sortBy(function ($item) { return $item['name']; });
+     * // Bag of [['name' => 'Alice], ['name' => 'Bob']]
+     * </code>
+     *
+     * @param callable $iteratee     Function given ($value)
+     * @param int      $order        SORT_ASC or SORT_DESC
+     * @param bool     $preserveKeys Whether to preserve keys for maps or to re-index for lists
+     *
+     * @return static
+     */
+    public function sortBy(callable $iteratee, $order = SORT_ASC, $preserveKeys = false)
+    {
+        return $this->sortWith($this->iterateeToComparator($iteratee, $order === SORT_ASC), $preserveKeys);
+    }
+
+    /**
+     * Returns a bag with the values sorted with the given $comparator.
+     *
+     * @param callable $comparator   Comparator function given ($itemA, $itemB)
+     * @param bool     $preserveKeys Whether to preserve keys for maps or to re-index for lists
+     *
+     * @return static
+     */
+    public function sortWith(callable $comparator, $preserveKeys = false)
+    {
+        $items = $this->items;
+
+        $preserveKeys ? uasort($items, $comparator) : usort($items, $comparator);
+
+        return $this->createFrom($items);
+    }
+
+    /**
+     * Returns a bag with the keys sorted.
+     *
+     * Sorting flags:
+     * <pre>
+     *  - SORT_REGULAR                  - compare keys without changing types
+     *  - SORT_NUMERIC                  - compare keys numerically
+     *  - SORT_STRING                   - compare keys as strings
+     *  - SORT_STRING | SORT_FLAG_CASE  - compare keys as strings ignoring case
+     *  - SORT_LOCALE_STRING            - compare keys as strings based on the current locale
+     *  - SORT_NATURAL                  - compare keys as strings using "natural ordering"
+     *  - SORT_NATURAL | SORT_FLAG_CASE - compare keys as strings using "natural ordering" ignoring case
+     * </pre>
+     *
+     * @param int $order SORT_ASC or SORT_DESC
+     * @param int $flags Sorting flags to modify the behavior
+     *
+     * @return static
+     */
+    public function sortKeys($order = SORT_ASC, $flags = SORT_REGULAR)
+    {
+        $this->validateSortArgs($order, $flags);
+
+        $items = $this->items;
+
+        if ($order === SORT_ASC) {
+            ksort($items, $flags);
+        } else {
+            krsort($items, $flags);
+        }
+
+        return $this->createFrom($items);
+    }
+
+    /**
+     * This method is like {@see sortKeysWith} except that it accepts an $iteratee which is invoked for each key
+     * to generate the criterion by which they're compared.
+     *
+     * Example:
+     * <code>
+     * $bag = Bag::from([
+     *     'blue'  => 'a',
+     *     'red'   => 'b',
+     *     'black' => 'c',
+     * ]);
+     *
+     * // Sort keys by first letter
+     * $bag->sortKeysBy(function ($key) {
+     *     return $key[0];
+     * });
+     * // Bag of ['blue' => 'a', 'black' => 'c', 'red' => 'b']
+     * </code>
+     *
+     * @param callable $iteratee Function given ($key)
+     * @param int      $order    SORT_ASC or SORT_DESC
+     *
+     * @return static
+     */
+    public function sortKeysBy(callable $iteratee, $order = SORT_ASC)
+    {
+        return $this->sortKeysWith($this->iterateeToComparator($iteratee, $order === SORT_ASC));
+    }
+
+    /**
+     * Returns a bag with the keys sorted with the given $comparator.
+     *
+     * @param callable $comparator Comparator function given ($keyA, $keyB)
+     *
+     * @return static
+     */
+    public function sortKeysWith(callable $comparator)
+    {
+        $items = $this->items;
+
+        uksort($items, $comparator);
+
+        return $this->createFrom($items);
+    }
+
+    /**
+     * @param int $order
+     * @param int $flags
+     */
+    private function validateSortArgs($order, $flags)
+    {
+        Assert::oneOf($order, [SORT_ASC, SORT_DESC], 'Expected $order to be SORT_ASC or SORT_DESC. Got: %s');
+
+        Assert::oneOf(
+            $flags,
+            [
+                SORT_REGULAR,
+                SORT_NUMERIC,
+                SORT_STRING,
+                SORT_LOCALE_STRING,
+                SORT_NATURAL,
+                SORT_STRING | SORT_FLAG_CASE,
+                SORT_NATURAL | SORT_FLAG_CASE,
+            ],
+            'Expected $flags to be one of: SORT_REGULAR, SORT_NUMERIC, SORT_STRING [ | SORT_FLAG_CASE], SORT_LOCALE_STRING, or SORT_NATURAL [ | SORT_FLAG_CASE]. Got: %s'
+        );
+    }
 
     /**
      * Returns a bag with the items reversed.
