@@ -426,6 +426,40 @@ class ImmutableBagTest extends TestCase
         return [$bag, $matchBs, $b1, $b2];
     }
 
+    public function testRandomValue()
+    {
+        $bag = $this->createBag(['red']);
+
+        $this->assertSame('red', $bag->randomValue());
+    }
+
+    /**
+     * @expectedException \InvalidArgumentException
+     */
+    public function testRandomValueEmpty()
+    {
+        $bag = $this->createBag([]);
+
+        $bag->randomValue();
+    }
+
+    public function testRandomKey()
+    {
+        $bag = $this->createBag(['red']);
+
+        $this->assertSame(0, $bag->randomKey());
+    }
+
+    /**
+     * @expectedException \InvalidArgumentException
+     */
+    public function testRandomKeyEmpty()
+    {
+        $bag = $this->createBag([]);
+
+        $bag->randomKey();
+    }
+
     // endregion
 
     // region Methods returning a new bag
@@ -790,6 +824,9 @@ class ImmutableBagTest extends TestCase
 
         $actual = $bag->pick(['a', 'c']);
         $this->assertBagResult(['a' => 'red', 'c' => 'green'], $bag, $actual);
+
+        $actual = $bag->pick($this->createBag(['a', 'c']));
+        $this->assertBagResult(['a' => 'red', 'c' => 'green'], $bag, $actual);
     }
 
     public function testOmit()
@@ -800,6 +837,9 @@ class ImmutableBagTest extends TestCase
         $this->assertBagResult(['b' => 'blue'], $bag, $actual);
 
         $actual = $bag->omit(['a', 'c']);
+        $this->assertBagResult(['b' => 'blue'], $bag, $actual);
+
+        $actual = $bag->omit($this->createBag(['a', 'c']));
         $this->assertBagResult(['b' => 'blue'], $bag, $actual);
     }
 
