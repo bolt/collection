@@ -1297,7 +1297,7 @@ class BagTest extends TestCase
         $this->assertNull($bag['nope']);
     }
 
-    public function testOffsetGetByReference()
+    public function after20testOffsetGetByReference()
     {
         if (defined('HHVM_VERSION')) {
             $this->markTestSkipped('HHVM does not trigger indirect modification notice.');
@@ -1323,7 +1323,7 @@ class BagTest extends TestCase
      * @expectedException \BadMethodCallException
      * @expectedExceptionMessage Cannot modify items on an Bolt\Collection\Bag
      */
-    public function testOffsetSet()
+    public function after20testOffsetSet()
     {
         $bag = $this->createBag();
 
@@ -1334,7 +1334,7 @@ class BagTest extends TestCase
      * @expectedException \BadMethodCallException
      * @expectedExceptionMessage Cannot remove items from an Bolt\Collection\Bag
      */
-    public function testOffsetUnset()
+    public function after20testOffsetUnset()
     {
         $bag = $this->createBag(['foo' => 'bar']);
 
