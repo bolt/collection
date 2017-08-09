@@ -10,16 +10,20 @@ use RuntimeException;
 use Traversable;
 
 /**
- * Array helper functions.
+ * Array functions. All of these methods accept `Traversable` or `ArrayAccess` objects in addition to arrays.
+ *
+ * Most of these methods are also provided in {@see Bag}, but their implementation is significant enough
+ * that the backing logic lives here so they can be used standalone from Bags.
  *
  * @author Carson Full <carsonfull@gmail.com>
  */
 class Arr
 {
+    /** @var \stdClass|null Used with {@see remove} to unset value */
     private static $unsetMarker;
 
     /**
-     * Converts an iterable, null, or stdClass to an array.
+     * Converts an `iterable`, `null`, or `stdClass` to an array.
      *
      * @param iterable|null|\stdClass $iterable
      *
@@ -48,7 +52,7 @@ class Arr
     }
 
     /**
-     * Recursively converts an iterable to nested arrays.
+     * Recursively converts an `iterable` to nested arrays.
      *
      * @param iterable|null|\stdClass $iterable
      *
@@ -69,14 +73,33 @@ class Arr
     }
 
     /**
-     * Return the values from a single column in the input array, identified by the $columnKey.
+     * Return the values from a single column in the `$input` array, identified by the `$columnKey`.
      *
-     * Optionally, an $indexKey may be provided to index the values in the returned array by the
-     * values from the $indexKey column in the input array.
+     * Optionally, an `$indexKey` may be provided to index the values in the returned array by the
+     * values from the `$indexKey` column in the input array.
+     *
+     * Example:
+     *
+     *     $data = [
+     *         ['id' => 10, 'name' => 'Alice'],
+     *         ['id' => 20, 'name' => 'Bob'],
+     *         ['id' => 30, 'name' => 'Carson'],
+     *     ];
+     *
+     *     Arr::column($data, 'name');
+     *     // => ['Alice', 'Bob', 'Carson']
+     *
+     *     Arr::column($data, 'name', 'id');
+     *     // => [10 => 'Alice', 20 => 'Bob', 30 => 'Carson']
+     *
+     * <br>
+     * Note: This matches the {@see array_column} function, however; it accepts an iterable not just an array,
+     * it allows for mapping a list of objects implementing `ArrayAccess`, and allows for mapping a list of
+     * object properties (which was added to the builtin function in PHP 7.0).
      *
      * @param iterable        $input     A list of arrays or objects from which to pull a column of values
-     * @param string|int      $columnKey The column of values to return
-     * @param string|int|null $indexKey  The column to use as the index/keys for the returned array
+     * @param string|int|null $columnKey The key of the values to return or `null` for no change
+     * @param string|int|null $indexKey  The key of the keys to return or `null` for no change
      *
      * @return array
      */
@@ -131,21 +154,22 @@ class Arr
     }
 
     /**
-     * Returns whether a key exists from an array (or ArrayAccess object) using a path syntax to retrieve nested data.
+     * Returns whether a key exists from an array or `ArrayAccess` object using path syntax to check nested data.
      *
-     * This method does not allow for keys that contain "/". You must traverse
-     * the array manually or using something more advanced like JMESPath to
-     * work with keys that contain "/".
+     * This method does not allow for keys that contain `/`.
+     *
+     * Example:
      *
      *     // Check if the the bar key of a set of nested arrays exists.
      *     // This is equivalent to isset($data['foo']['baz']['bar']) but won't
      *     // throw warnings for missing keys.
-     *     has($data, 'foo/baz/bar');
+     *     Arr::has($data, 'foo/baz/bar');
      *
-     * Note: isset() with nested data, `isset($data['a']['b'])`, won't call offsetExists for 'a'.
-     * It calls offsetGet('a') and if 'a' doesn't exist and an isset isn't done in offsetGet, a warning is thrown.
-     * It could be argued that that ArrayAccess object should fix its implementation of offsetGet, and I would agree.
-     * But I think this can have nicer syntax.
+     * <br>
+     * Note: Using `isset()` with nested data, like `isset($data['a']['b'])`, won't call `offsetExists` for 'a'.
+     * It calls `offsetGet('a')` and if 'a' doesn't exist and an `isset` check isn't done in `offsetGet`, a warning is
+     * triggered. It could be argued that that `ArrayAccess` object should fix this in their implementation of
+     * `offsetGet`, and I would agree. Regardless I think this is nicer syntax.
      *
      * @param array|ArrayAccess $data Data to check values from
      * @param string            $path Path to traverse and check keys from
@@ -173,16 +197,16 @@ class Arr
     }
 
     /**
-     * Gets a value from an array (or ArrayAccess object) using a path syntax to retrieve nested data.
+     * Gets a value from an array or `ArrayAccess` object using path syntax to retrieve nested data.
      *
-     * This method does not allow for keys that contain "/". You must traverse
-     * the array manually or using something more advanced like JMESPath to
-     * work with keys that contain "/".
+     * Example:
      *
      *     // Get the bar key of a set of nested arrays.
      *     // This is equivalent to $data['foo']['baz']['bar'] but won't
      *     // throw warnings for missing keys.
-     *     get($data, 'foo/baz/bar');
+     *     Arr::get($data, 'foo/baz/bar');
+     *
+     * This method does not allow for keys that contain `/`.
      *
      * This code is adapted from Michael Dowling in his Guzzle library.
      *
@@ -210,24 +234,31 @@ class Arr
     }
 
     /**
-     * Set a value in a nested array (or ArrayAccess object) key.
-     * Keys will be created as needed to set the value.
+     * Sets a value in a nested array or `ArrayAccess` object using path syntax to set nested data.
+     * Inner arrays will be created as needed to set the value.
      *
-     * This function does not support keys that contain "/" or "[]" characters
+     * Example:
+     *
+     *     // Set an item at a nested structure
+     *     Arr::set($data, 'nested/path/hello', 'world');
+     *
+     *     // Append to a list in a nested structure
+     *     Arr::get($data, 'foo/baz');
+     *     // => null
+     *     Arr::set($data, 'foo/baz/[]', 'a');
+     *     Arr::set($data, 'foo/baz/[]', 'b');
+     *     Arr::get($data, 'foo/baz');
+     *     // => ['a', 'b']
+     *
+     * This function does not support keys that contain `/` or `[]` characters
      * because these are special tokens used when traversing the data structure.
-     * A value may be appended to an existing array by using "[]" as the final
+     * A value may be appended to an existing array by using `[]` as the final
      * key of a path.
      *
-     *     get($data, 'foo/baz'); // null
-     *     set($data, 'foo/baz/[]', 'a');
-     *     set($data, 'foo/baz/[]', 'b');
-     *     get($data, 'foo/baz');
-     *     // Returns ['a', 'b']
-     *
-     * Note: To set values not directly under ArrayAccess objects their
-     * offsetGet() method needs to be defined as return by reference.
-     *
-     *     public function &offsetGet($offset) {}
+     * <br>
+     * Note: To set values in arrays that are in `ArrayAccess` objects their
+     * `offsetGet()` method needs to be able to return arrays by reference.
+     * See {@see MutableBag} for an example of this.
      *
      * This code is adapted from Michael Dowling in his Guzzle library.
      *
@@ -235,8 +266,9 @@ class Arr
      * @param string            $path  Path to set
      * @param mixed             $value Value to set at the key
      *
-     * @throws \RuntimeException when trying to set using a nested path that travels through a scalar value or an
-     *                           object whose offsetGet method isn't marked as return by reference
+     * @throws \RuntimeException when trying to set a path that travels through a scalar value
+     * @throws \RuntimeException when trying to set a value in an array that is in an `ArrayAccess` object
+     *                           which cannot retrieve arrays by reference
      */
     public static function set(&$data, $path, $value)
     {
@@ -306,26 +338,29 @@ class Arr
     }
 
     /**
-     * Removes a value from an array (or ArrayAccess object) using a path syntax to retrieve nested data and returns it.
-     *
-     * This function does not support keys that contain "/" or "[]" characters
-     * because these are special tokens used when traversing the data structure.
+     * Removes and returns a value from an array or `ArrayAccess` object using path syntax to remove nested data.
      *
      * Example:
-     *     remove($data, 'foo/bar');
+     *
+     *     Arr::remove($data, 'foo/bar');
      *     // => 'baz'
-     *     remove($data, 'foo/bar');
+     *     Arr::remove($data, 'foo/bar');
      *     // => null
      *
+     * This function does not support keys that contain `/`.
      *
-     * Note: To set values not directly under ArrayAccess objects their
-     * offsetGet() method needs to be defined as return by reference.
-     *
-     *     public function &offsetGet($offset) {}
+     * <br>
+     * Note: To remove values in arrays that are in `ArrayAccess` objects their
+     * `offsetGet()` method needs to be able to return arrays by reference.
+     * See {@see MutableBag} for an example of this.
      *
      * @param array|ArrayAccess $data    Data to retrieve remove value from
      * @param string            $path    Path to traverse
      * @param mixed|null        $default Default value to return if key does not exist
+     *
+     * @throws \RuntimeException when trying to remove a path that travels through a scalar value
+     * @throws \RuntimeException when trying to remove a value in an array that is in an `ArrayAccess` object
+     *                           which cannot retrieve arrays by reference
      *
      * @return mixed
      */
@@ -354,7 +389,7 @@ class Arr
     }
 
     /**
-     * Returns whether the value is an array or an object implementing ArrayAccess.
+     * Returns whether the value is an array or an object implementing `ArrayAccess`.
      *
      * @param mixed $value
      *
@@ -366,11 +401,11 @@ class Arr
     }
 
     /**
-     * Asserts that the given value is an array or an object implementing ArrayAccess.
+     * Asserts that the given value is an array or an object implementing `ArrayAccess`.
      *
      * @param mixed $value
      *
-     * @throws InvalidArgumentException
+     * @throws InvalidArgumentException when it is not
      *
      * @deprecated since 1.0 and will be removed in 2.0. Use {@see \Bolt\Common\Assert::isArrayAccessible} instead.
      */
@@ -382,51 +417,51 @@ class Arr
     }
 
     /**
-     * Returns whether the given item is an associative array.
+     * Returns whether the `$iterable` is an associative mapping.
      *
      * Note: Empty arrays are not.
      *
-     * @param iterable $array
+     * @param iterable $iterable
      *
      * @return bool
      */
-    public static function isAssociative($array)
+    public static function isAssociative($iterable)
     {
-        if ($array instanceof Traversable) {
-            $array = iterator_to_array($array);
+        if ($iterable instanceof Traversable) {
+            $iterable = iterator_to_array($iterable);
         }
-        if (!is_array($array) || $array === []) {
+        if (!is_array($iterable) || $iterable === []) {
             return false;
         }
 
-        return array_keys($array) !== range(0, count($array) - 1);
+        return array_keys($iterable) !== range(0, count($iterable) - 1);
     }
 
     /**
-     * Returns whether the given item is an indexed array - zero indexed and sequential.
+     * Returns whether the `$iterable` is an indexed list - zero indexed and sequential.
      *
-     * Note: Empty arrays are.
-     *
-     * @param iterable $array
-     *
-     * @return bool
-     */
-    public static function isIndexed($array)
-    {
-        if (!is_iterable($array)) {
-            return false;
-        }
-
-        return !static::isAssociative($array);
-    }
-
-    /**
-     * Returns an array with the given $callable applied to each leaf value in the given $iterable.
-     *
-     * This converts all nested iterables to arrays.
+     * Note: Empty iterables are.
      *
      * @param iterable $iterable
-     * @param callable $callable Function is passed ($value, $key)
+     *
+     * @return bool
+     */
+    public static function isIndexed($iterable)
+    {
+        if (!is_iterable($iterable)) {
+            return false;
+        }
+
+        return !static::isAssociative($iterable);
+    }
+
+    /**
+     * Returns an array with the `$callable` applied to each leaf value in the `$iterable`.
+     *
+     * This converts all `Traversable` objects to arrays.
+     *
+     * @param iterable $iterable
+     * @param callable $callable Function is passed `($value, $key)`
      *
      * @return array
      */
@@ -466,34 +501,36 @@ class Arr
     }
 
     /**
-     * Replaces values from second array into first array recursively.
+     * Replaces values from second iterable into first iterable recursively.
      *
      * This differs from {@see array_replace_recursive} in a couple ways:
+     *
      *  - Lists (indexed arrays) from second array completely replace list in first array.
+     *
      *  - Null values from second array do not replace lists or associative arrays in first
      *    (they do still replace scalar values).
      *
-     * This method converts all traversable objects at any level to arrays in the return value.
+     * This converts all `Traversable` objects to arrays.
      *
-     * @param iterable $array1
-     * @param iterable $array2
+     * @param iterable $iterable1
+     * @param iterable $iterable2
      *
      * @return array The combined array
      */
-    public static function replaceRecursive($array1, $array2)
+    public static function replaceRecursive($iterable1, $iterable2)
     {
-        Assert::allIsIterable([$array1, $array2]);
+        Assert::allIsIterable([$iterable1, $iterable2]);
 
-        if ($array1 instanceof Traversable) {
-            $array1 = iterator_to_array($array1);
+        if ($iterable1 instanceof Traversable) {
+            $iterable1 = iterator_to_array($iterable1);
         }
-        if ($array2 instanceof Traversable) {
-            $array2 = iterator_to_array($array2);
+        if ($iterable2 instanceof Traversable) {
+            $iterable2 = iterator_to_array($iterable2);
         }
 
-        $merged = $array1;
+        $merged = $iterable1;
 
-        foreach ($array2 as $key => $value) {
+        foreach ($iterable2 as $key => $value) {
             if ($value instanceof Traversable) {
                 $value = iterator_to_array($value);
             }
@@ -584,7 +621,13 @@ class Arr
      * Flattens an iterable.
      *
      * Example:
-     *     Arr::flatten([1, [2, 3], [4]])
+     *
+     *     // Flatten one level
+     *     Arr::flatten([[1, 2], [[3]], 4])
+     *     // => [1, 2, [3], 4]
+     *
+     *     // Flatten all levels
+     *     Arr::flatten([[1, 2], [[3]], 4], INF)
      *     // => [1, 2, 3, 4]
      *
      * @param iterable $iterable The iterable to flatten
