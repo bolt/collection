@@ -5,7 +5,7 @@ namespace Bolt\Collection\Tests;
 use ArrayObject;
 use Bolt\Collection\MutableBag;
 
-class MutableBagTest extends ImmutableBagTest
+class MutableBagTest extends BagTest
 {
     use BagLegacyTrait;
 

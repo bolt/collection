@@ -7,10 +7,7 @@ use Bolt\Collection\Bag;
 use Bolt\Collection\MutableBag;
 use PHPUnit\Framework\TestCase;
 
-/**
- * @group legacy
- */
-class ImmutableBagTest extends TestCase
+class BagTest extends TestCase
 {
     /** @var string|Bag class used for static creation methods and instance of assertions */
     protected $cls = Bag::class;
