@@ -12,7 +12,6 @@ use IteratorAggregate;
 use JsonSerializable;
 use RuntimeException;
 use stdClass;
-use Traversable;
 
 /**
  * This is an OO implementation of almost all of PHP's array functionality.
@@ -45,7 +44,7 @@ class ImmutableBag implements ArrayAccess, Countable, IteratorAggregate, JsonSer
     /**
      * Create a bag from a variety of collections.
      *
-     * @param Traversable|array|stdClass|null $collection
+     * @param iterable|stdClass|null $collection
      *
      * @return static
      */
@@ -57,7 +56,7 @@ class ImmutableBag implements ArrayAccess, Countable, IteratorAggregate, JsonSer
     /**
      * Takes the items and recursively converts them to Bags.
      *
-     * @param Traversable|array|stdClass|null $collection
+     * @param iterable|stdClass|null $collection
      *
      * @return static
      */
@@ -78,8 +77,8 @@ class ImmutableBag implements ArrayAccess, Countable, IteratorAggregate, JsonSer
     /**
      * Creates a bag by using one collection for keys and another for its values.
      *
-     * @param Traversable|array $keys
-     * @param Traversable|array $values
+     * @param iterable $keys
+     * @param iterable $values
      *
      * @return static
      */
@@ -685,7 +684,7 @@ class ImmutableBag implements ArrayAccess, Countable, IteratorAggregate, JsonSer
     /**
      * Replaces items in this bag from the given collection by comparing keys and returns the result.
      *
-     * @param Traversable|array $collection The collection from which items will be extracted
+     * @param iterable $collection The collection from which items will be extracted
      *
      * @return static
      */
@@ -702,7 +701,7 @@ class ImmutableBag implements ArrayAccess, Countable, IteratorAggregate, JsonSer
      *  - Null values from given collection do not replace lists or associative arrays in this Bag
      *    (they do still replace scalar values).
      *
-     * @param Traversable|array $collection The collection from which items will be extracted
+     * @param iterable $collection The collection from which items will be extracted
      *
      * @return static
      */
@@ -715,7 +714,7 @@ class ImmutableBag implements ArrayAccess, Countable, IteratorAggregate, JsonSer
      * Returns a bag with the items from the given collection added to the items in this bag
      * if they do not already exist by comparing keys. The opposite of replace().
      *
-     * @param Traversable|array $collection The collection from which items will be extracted
+     * @param iterable $collection The collection from which items will be extracted
      *
      * @return static
      */
@@ -728,7 +727,7 @@ class ImmutableBag implements ArrayAccess, Countable, IteratorAggregate, JsonSer
      * Returns a bag with the items from the given collection recursively added to the items in this bag
      * if they do not already exist by comparing keys. The opposite of replaceRecursive().
      *
-     * @param Traversable|array $collection The collection from which items will be extracted
+     * @param iterable $collection The collection from which items will be extracted
      *
      * @return static
      */
@@ -743,7 +742,7 @@ class ImmutableBag implements ArrayAccess, Countable, IteratorAggregate, JsonSer
      * Note: This should only be used for lists (zero indexed and sequential items).
      * For associative arrays, use replace instead.
      *
-     * @param Traversable|array $list The list of items to merge
+     * @param iterable $list The list of items to merge
      *
      * @return static
      */
