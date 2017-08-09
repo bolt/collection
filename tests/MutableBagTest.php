@@ -5,8 +5,10 @@ namespace Bolt\Collection\Tests;
 use ArrayObject;
 use Bolt\Collection\MutableBag;
 
-class MutableBagTest extends BagTest
+class MutableBagTest extends ImmutableBagTest
 {
+    use BagLegacyTrait;
+
     /** @var string|MutableBag */
     protected $cls = MutableBag::class;
 

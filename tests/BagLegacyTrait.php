@@ -4,22 +4,20 @@ namespace Bolt\Collection\Tests;
 
 use ArrayObject;
 use Bolt\Collection\Bag;
+use PHPUnit\Framework\TestCase;
 
-class BagTest extends ImmutableBagTest
+/**
+ * Tests for mutating methods on Bag which are deprecated, but also on MutableBag.
+ *
+ * @mixin TestCase
+ */
+trait BagLegacyTrait
 {
-    /** @var string|Bag */
-    protected $cls = Bag::class;
-
     protected function createBag($items = [])
     {
         return new Bag($items);
     }
 
-    // region Mutating Methods (Deprecated)
-
-    /**
-     * @group legacy
-     */
     public function testAdd()
     {
         $bag = $this->createBag();
@@ -30,9 +28,6 @@ class BagTest extends ImmutableBagTest
         $this->assertEquals(['foo', 'bar'], $bag->toArray());
     }
 
-    /**
-     * @group legacy
-     */
     public function testPrepend()
     {
         $bag = $this->createBag();
@@ -43,9 +38,6 @@ class BagTest extends ImmutableBagTest
         $this->assertEquals(['bar', 'foo'], $bag->toArray());
     }
 
-    /**
-     * @group legacy
-     */
     public function testSet()
     {
         $bag = $this->createBag();
@@ -55,9 +47,6 @@ class BagTest extends ImmutableBagTest
         $this->assertEquals(['foo' => 'bar'], $bag->toArray());
     }
 
-    /**
-     * @group legacy
-     */
     public function testSetPath()
     {
         $bag = $this->createBag([
@@ -75,9 +64,6 @@ class BagTest extends ImmutableBagTest
         $this->assertEquals(['red', 'blue'], $bag->getPath('items/colors'));
     }
 
-    /**
-     * @group legacy
-     */
     public function testClear()
     {
         $bag = $this->createBag(['foo', 'bar']);
@@ -87,9 +73,6 @@ class BagTest extends ImmutableBagTest
         $this->assertTrue($bag->isEmpty());
     }
 
-    /**
-     * @group legacy
-     */
     public function testRemove()
     {
         $bag = $this->createBag(['foo' => 'bar']);
@@ -101,9 +84,6 @@ class BagTest extends ImmutableBagTest
         $this->assertEquals('default', $bag->remove('derp', 'default'));
     }
 
-    /**
-     * @group legacy
-     */
     public function testRemoveItem()
     {
         $bag = $this->createBag(['foo', 'bar']);
@@ -113,9 +93,6 @@ class BagTest extends ImmutableBagTest
         $this->assertFalse($bag->hasItem('bar'));
     }
 
-    /**
-     * @group legacy
-     */
     public function testRemoveFirst()
     {
         $bag = $this->createBag(['foo', 'bar']);
@@ -123,12 +100,9 @@ class BagTest extends ImmutableBagTest
         $this->assertEquals('foo', $bag->removeFirst());
         $this->assertEquals('bar', $bag->removeFirst());
         $this->assertNull($bag->removeFirst());
-        $this->assertTrue($bag->isEmpty());
+        $this->assertEmpty($bag);
     }
 
-    /**
-     * @group legacy
-     */
     public function testRemoveLast()
     {
         $bag = $this->createBag(['foo', 'bar']);
@@ -136,16 +110,9 @@ class BagTest extends ImmutableBagTest
         $this->assertEquals('bar', $bag->removeLast());
         $this->assertEquals('foo', $bag->removeLast());
         $this->assertNull($bag->removeLast());
-        $this->assertTrue($bag->isEmpty());
+        $this->assertEmpty($bag);
     }
 
-    // endregion
-
-    // region Internal Methods
-
-    /**
-     * @group legacy
-     */
     public function testOffsetGet()
     {
         $bag = $this->createBag(['foo' => 'bar']);
@@ -154,14 +121,11 @@ class BagTest extends ImmutableBagTest
         $this->assertNull($bag['nope']);
     }
 
-    /**
-     * @group legacy
-     */
     public function testOffsetGetByReference()
     {
         $bag = $this->createBag(['arr' => ['1']]);
 
-        // Assert arrays are not able to be modified by reference.
+        // Assert arrays are able to be modified by reference.
         $errors = new \ArrayObject();
         set_error_handler(function ($type, $message) use ($errors) {
             $errors[] = [$type, $message];
@@ -171,14 +135,11 @@ class BagTest extends ImmutableBagTest
         $arr[] = '2';
 
         restore_error_handler();
-        $this->assertEmpty($errors->getArrayCopy());
+        $this->assertEmpty($errors);
 
         $this->assertEquals(['1', '2'], $bag['arr']);
     }
 
-    /**
-     * @group legacy
-     */
     public function testOffsetSet()
     {
         $bag = $this->createBag();
@@ -192,9 +153,6 @@ class BagTest extends ImmutableBagTest
         $this->assertEquals('world', $bag[1]);
     }
 
-    /**
-     * @group legacy
-     */
     public function testOffsetUnset()
     {
         $bag = $this->createBag(['foo' => 'bar']);
@@ -203,6 +161,4 @@ class BagTest extends ImmutableBagTest
 
         $this->assertFalse($bag->has('foo'));
     }
-
-    // endregion
 }
