@@ -1,5 +1,8 @@
 # Bolt Collection
 
+[![travis](https://api.travis-ci.org/bolt/collection.svg)](https://travis-ci.org/bolt/collection)
+[![codecov](https://codecov.io/gh/bolt/collection/branch/master/graph/badge.svg)](https://codecov.io/gh/bolt/collection)
+
 This library provides objects and functionality to help with groups of items and data sets.
 
 ## `Bag` and `MutableBag`
