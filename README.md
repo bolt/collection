@@ -5,6 +5,8 @@
 
 This library provides objects and functionality to help with groups of items and data sets.
 
+Check out the [API documentation][api-docs].
+
 ## `Bag` and `MutableBag`
 
 These are object-oriented implementations of arrays. 
@@ -62,7 +64,7 @@ $colors->removeFirst(); // "purple"
 $colors->removeFirst(); // "red"
 ```
 
-These examples only cover half of the functionality.
+These examples only cover half of the functionality. See the [API documentation][api-docs] for more.
 
 All methods accepting a collection will accept other `Bags`, `arrays`,
 `stdClass`, and `Traversable` objects. This makes it very easy work with any
@@ -82,3 +84,5 @@ Doctrine's `ArrayCollection` is also another, more robust, option. It works
 well for maps and lists, but still has limited functionality due to needing to
 interface with a database collection. It also has some annoyances, like 
 `getKeys()` returns an `array` instead of another `ArrayCollection` instance.
+
+[api-docs]: https://docs.bolt.cm/api/bolt/collection/master/classes.html
