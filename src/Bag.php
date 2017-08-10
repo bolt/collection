@@ -13,9 +13,9 @@ use RuntimeException;
 use stdClass;
 
 /**
- * This is an OO implementation of almost all of PHP's array functionality.
+ * An OO implementation of PHP's array functionality and more (minus mutability).
  *
- * All methods that allow mutation are deprecated, use {@see MutableBag} for those cases instead.
+ * All methods that allow mutation are deprecated, use {@see MutableBag} for those use cases instead.
  *
  * @author Carson Full <carsonfull@gmail.com>
  */
@@ -157,11 +157,14 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
     }
 
     /**
-     * Returns whether an item exists for the key defined by the given path.
+     * Returns whether a key exists using path syntax to check nested data.
      *
-     *     hasPath('foo/bar/baz') // true
+     * Example:
      *
-     * This method does not allow for keys that contain "/".
+     *     $bag->hasPath('foo/bar/baz')
+     *     // => true
+     *
+     * This method does not allow for keys that contain `/`.
      *
      * @param string $path The path to traverse and check keys from
      *
@@ -173,7 +176,9 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
     }
 
     /**
-     * Returns true if the item is in the bag.
+     * Returns whether the item is in the bag.
+     *
+     * This uses a strict check so types must much and objects must be the same instance to match.
      *
      * @param mixed $item
      *
@@ -198,11 +203,16 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
     }
 
     /**
-     * Returns an item using a path syntax to retrieve nested data.
+     * Returns an item using path syntax to retrieve nested data.
      *
-     *     getPath('foo/bar/baz') // baz item
+     * Example:
      *
-     * This method does not allow for keys that contain "/".
+     *     // Get the bar key of a set of nested arrays.
+     *     // This is equivalent to $data['foo']['baz']['bar'] but won't
+     *     // throw warnings for missing keys.
+     *     $bag->getPath('foo/bar/baz');
+     *
+     * This method does not allow for keys that contain `/`.
      *
      * @param string $path    The path to traverse and retrieve an item from
      * @param mixed  $default The default value if the key does not exist
@@ -311,9 +321,9 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
     }
 
     /**
-     * Gets the first index/key of a given item. The comparison of two items is strict,
-     * that means not only the value but also the type must match.
-     * For objects this means they must be the same instance.
+     * Gets the first index/key of a given item.
+     *
+     * This uses a strict check so types must much and objects must be the same instance to match.
      *
      * @param mixed $item      The item to search for
      * @param int   $fromIndex The starting index to search from.
@@ -334,9 +344,9 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
     }
 
     /**
-     * Gets the last index/key of a given item. The comparison of two items is strict,
-     * that means not only the value but also the type must match.
-     * For objects this means they must be the same instance.
+     * Gets the last index/key of a given item.
+     *
+     * This uses a strict check so types must much and objects must be the same instance to match.
      *
      * @param mixed $item      The item to search for
      * @param int   $fromIndex The starting index to search from. Default is the last index.
@@ -357,9 +367,9 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
     }
 
     /**
-     * Returns the first item that matches the predicate or null.
+     * Returns the first item that matches the `$predicate` or null.
      *
-     * @param callable $predicate Function is passed (value, key)
+     * @param callable $predicate Function is passed `($value, $key)`
      * @param int      $fromIndex The starting index to search from.
      *                            Can be negative to start from that far from the end of the array.
      *                            If index is out of bounds, it will be moved to first/last index.
@@ -374,9 +384,9 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
     }
 
     /**
-     * Returns the last item that matches the predicate or null.
+     * Returns the last item that matches the `$predicate` or null.
      *
-     * @param callable $predicate Function is passed (value, key)
+     * @param callable $predicate Function is passed `($value, $key)`
      * @param int      $fromIndex The starting index to search from.
      *                            Can be negative to start from that far from the end of the array.
      *                            If index is out of bounds, it will be moved to first/last index.
@@ -391,9 +401,9 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
     }
 
     /**
-     * Returns the first key that matches the predicate or null.
+     * Returns the first key that matches the `$predicate` or null.
      *
-     * @param callable $predicate Function is passed (value, key)
+     * @param callable $predicate Function is passed `($value, $key)`
      * @param int      $fromIndex The starting index to search from.
      *                            Can be negative to start from that far from the end of the array.
      *                            If index is out of bounds, it will be moved to first/last index.
@@ -412,9 +422,9 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
     }
 
     /**
-     * Returns the last key that matches the predicate or null.
+     * Returns the last key that matches the `$predicate` or null.
      *
-     * @param callable $predicate Function is passed (value, key)
+     * @param callable $predicate Function is passed `($value, $key)`
      * @param int      $fromIndex The starting index to search from.
      *                            Can be negative to start from that far from the end of the array.
      *                            If index is out of bounds, it will be moved to first/last index.
@@ -514,14 +524,17 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
     // region Methods returning a new bag
 
     /**
-     * Calls the $callable with the items (array) as the first parameter which should return an iterable which is
-     * then converted to a bag. Any extra parameters passed in to this method are passed to the $callable after
-     * the items parameter.
+     * Calls the `$callable` to modify the items.
      *
      * This allows for chain-ability with custom functionality.
      *
+     * The `$callable` is given the bag's items (array) as the first parameter and should return an iterable which is
+     * then converted to a bag. Any extra parameters passed in to this method are passed to the `$callable` after
+     * the items parameter.
+     *
      * <br>
-     * Example:
+     * Example with closure:
+     *
      *     Bag::from(['red', 'blue'])
      *         ->call(function (array $colors) {
      *             $colors[] = 'green';
@@ -532,12 +545,14 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
      *     // => "red, blue, green"
      *
      * <br>
-     * Example with args:
-     *     Bag::from(['red', 'blue'])->call('array_pad', 4, '');
-     *     // => Bag ['red', 'blue', '', '']
+     * Example with function name and args:
      *
-     * @param callable $callable
-     * @param array    ...$args
+     *     Bag::from(['red', 'blue'])
+     *         ->call('array_pad', 4, ''); // Assuming bag doesn't have a pad method ;)
+     *     // => Bag of ['red', 'blue', '', '']
+     *
+     * @param callable $callable Function is given `($items, ...$args)` and should return an iterable
+     * @param array    ...$args  Extra parameters to pass to the `$callable` after the items parameter
      *
      * @return static
      */
@@ -593,12 +608,12 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
     }
 
     /**
-     * Applies the given function to each item in the bag and returns
+     * Applies the `$callable` to each _value_ in the bag and returns
      * a new bag with the items returned by the function.
      *
-     * Note: This differs from array_map in that the callback is passed $key first, then $value.
+     * Note: This differs from {@see array_map} in that the callback is passed `$key` first, then `$value`.
      *
-     * @param callable $callback Function is passed (key, value)
+     * @param callable $callback Function is passed `($key, $value)`
      *
      * @return static
      */
@@ -617,7 +632,7 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
      * Applies the given function to each _key_ in the bag and returns
      * a new bag with the keys returned by the function and their values.
      *
-     * @param callable $callback Function is passed (key, value)
+     * @param callable $callback Function is passed `($key, $value)`
      *
      * @return static
      */
@@ -633,22 +648,22 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
     }
 
     /**
-     * Returns a bag with the items that satisfy the predicate $callback.
+     * Returns a bag with the items that satisfy the `$predicate`.
      *
      * Keys are preserved, so lists could need to be re-indexed.
      *
-     * Note: This differs from array_filter in that the callback is passed $key first, then $value.
+     * Note: This differs from {@see array_filter} in that the `$predicate` is passed `$key` first, then `$value`.
      *
-     * @param callable $callback The predicate used for filtering. Function is passed (key, value).
+     * @param callable $predicate Function is passed `($key, $value)`
      *
      * @return static
      */
-    public function filter(callable $callback)
+    public function filter(callable $predicate)
     {
         $items = [];
 
         foreach ($this->items as $key => $value) {
-            if ($callback($key, $value)) {
+            if ($predicate($key, $value)) {
                 $items[$key] = $value;
             }
         }
@@ -657,20 +672,20 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
     }
 
     /**
-     * Returns a bag with the items that do not satisfy the predicate $callback, the opposite of {@see filter}.
+     * Returns a bag with the items that do not satisfy the `$predicate`. The opposite of {@see filter}.
      *
      * Keys are preserved, so lists could need to be re-indexed.
      *
-     * @param callable $callback The predicate used for filtering. Function is passed (key, value).
+     * @param callable $predicate Function is passed `($key, $value)`
      *
      * @return static
      */
-    public function reject(callable $callback)
+    public function reject(callable $predicate)
     {
         $items = [];
 
         foreach ($this->items as $key => $value) {
-            if (!$callback($key, $value)) {
+            if (!$predicate($key, $value)) {
                 $items[$key] = $value;
             }
         }
@@ -689,7 +704,7 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
     }
 
     /**
-     * Replaces items in this bag from the given collection by comparing keys and returns the result.
+     * Replaces items in this bag from the `$collection` by comparing keys and returns the result.
      *
      * @param iterable $collection The collection from which items will be extracted
      *
@@ -701,10 +716,12 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
     }
 
     /**
-     * Returns a bag with the items replaced recursively from the given collection.
+     * Returns a bag with the items replaced recursively from the `$collection`.
      *
      * This differs from {@see array_replace_recursive} in a couple ways:
+     *
      *  - Lists (zero indexed and sequential items) from given collection completely replace lists in this Bag.
+     *
      *  - Null values from given collection do not replace lists or associative arrays in this Bag
      *    (they do still replace scalar values).
      *
@@ -718,8 +735,14 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
     }
 
     /**
-     * Returns a bag with the items from the given collection added to the items in this bag
-     * if they do not already exist by comparing keys. The opposite of replace().
+     * Returns a bag with the items from the `$collection` added to the items in this bag
+     * if they do not already exist by comparing keys. The opposite of {@see replace}.
+     *
+     * Example:
+     *
+     *     Bag::from(['foo' => 'bar'])
+     *         ->defaults(['foo' => 'other', 'hello' => 'world']);
+     *     // => Bag of ['foo' => 'bar', 'hello' => 'world']
      *
      * @param iterable $collection The collection from which items will be extracted
      *
@@ -731,8 +754,8 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
     }
 
     /**
-     * Returns a bag with the items from the given collection recursively added to the items in this bag
-     * if they do not already exist by comparing keys. The opposite of replaceRecursive().
+     * Returns a bag with the items from the `$collection` recursively added to the items in this bag
+     * if they do not already exist by comparing keys. The opposite of {@see replaceRecursive}.
      *
      * @param iterable $collection The collection from which items will be extracted
      *
@@ -747,7 +770,7 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
      * Returns a bag with the items merged with the given list.
      *
      * Note: This should only be used for lists (zero indexed and sequential items).
-     * For associative arrays, use replace instead.
+     * For associative arrays, use {@see replace} instead.
      *
      * @param iterable $list The list of items to merge
      *
@@ -759,7 +782,7 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
     }
 
     /**
-     * Returns a bag with a slice of $length items starting at position $offset extracted from this bag.
+     * Returns a bag with a slice of `$length` items starting at position `$offset` extracted from this bag.
      *
      * @param int      $offset       If positive, the offset to start from.
      *                               If negative, the bag will start that far from the end of the list.
@@ -776,23 +799,25 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
     }
 
     /**
-     * Partitions the items into two bags according to the callback function.
+     * Partitions the items into two bags according to the `$predicate`.
      * Keys are preserved in the resulting bags.
+     *
+     * Example:
      *
      *     [$trueItems, $falseItems] = $bag->partition(function ($key, $item) {
      *         return true; // whatever logic
      *     });
      *
-     * @param callable $callback The function is passed (key, value) and should return a boolean
+     * @param callable $predicate Function is passed `($key, $value)` and should return a `boolean`
      *
      * @return static[] [true bag, false bag]
      */
-    public function partition(callable $callback)
+    public function partition(callable $predicate)
     {
         $coll1 = $coll2 = [];
 
         foreach ($this->items as $key => $item) {
-            if ($callback($key, $item)) {
+            if ($predicate($key, $item)) {
                 $coll1[$key] = $item;
             } else {
                 $coll2[$key] = $item;
@@ -803,13 +828,27 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
     }
 
     /**
-     * Returns a bag with the values from a single column, identified by the $columnKey.
+     * Returns a bag with the values from a single column, identified by the `$columnKey`.
      *
-     * Optionally, an $indexKey may be provided to index the values in the
-     * returned Bag by the values from the $indexKey column.
+     * Optionally, an `$indexKey` may be provided to index the values in the
+     * returned Bag by the values from the `$indexKey` column.
      *
-     * @param string      $columnKey Column of values to return
-     * @param string|null $indexKey  Column to use as the index/keys for the returned items
+     * Example:
+     *
+     *     $bag = Bag::from([
+     *         ['id' => 10, 'name' => 'Alice'],
+     *         ['id' => 20, 'name' => 'Bob'],
+     *         ['id' => 30, 'name' => 'Carson'],
+     *     ]);
+     *
+     *     $bag->column('name');
+     *     // => Bag of ['Alice', 'Bob', 'Carson']
+     *
+     *     $bag->column('name', 'id');
+     *     // => Bag of [10 => 'Alice', 20 => 'Bob', 30 => 'Carson']
+     *
+     * @param string|int|null $columnKey The key of the values to return or `null` for no change
+     * @param string|int|null $indexKey  The key of the keys to return or `null` for no change
      *
      * @return static
      */
@@ -838,10 +877,10 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
     }
 
     /**
-     * Iteratively reduce the items to a single value using a callback function.
+     * Iteratively reduce the items to a single value using the `$callback` function.
      *
-     * @param callable $callback Function is passed $carry (previous or initial value)
-     *                           and $item (value of the current iteration)
+     * @param callable $callback Function is passed `$carry` (previous or initial value)
+     *                           and `$item` (value of the current iteration)
      * @param mixed    $initial  Initial value
      *
      * @return mixed The resulting value or the initial value if list is empty
@@ -874,8 +913,11 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
      *
      * The last chunk may contain less items.
      *
-     *     $bag = new Bag([1, 2, 3, 4, 5]);
-     *     $bag->chunk(2); // returns [[1, 2], [3, 4], [5]] but as bags not arrays.
+     * Example:
+     *
+     *     Bag::from([1, 2, 3, 4, 5])
+     *         ->chunk(2);
+     *     // => Bag of [Bag of [1, 2], Bag of [3, 4], Bag of [5]]
      *
      * @param int  $size         The size of each chunk
      * @param bool $preserveKeys When set to TRUE keys will be preserved. Default is FALSE which will reindex
@@ -893,19 +935,22 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
     }
 
     /**
-     * Returns a bag with the items padded to the given size with the given value.
+     * Returns a bag with the items padded to the `$size` with the `$value`.
      *
      * If size is positive then the array is padded on the right.
      * If it's negative then on the left.
      *
      * Examples:
-     *     Bag::from([1, 2])->pad(4, null);
+     *
+     *     $bag = Bag::from([1, 2]);
+     *
+     *     $bag->pad(4, null);
      *     // => Bag of [1, 2, null, null]
      *
-     *     Bag::from([1, 2])->pad(-4, null);
+     *     $bag->pad(-4, null);
      *     // => Bag of [null, null, 1, 2]
      *
-     *     Bag::from([1, 2])->pad(2, null);
+     *     $bag->pad(2, null);
      *     // => Bag of [1, 2]
      *
      * @param int   $size
@@ -921,6 +966,12 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
     /**
      * Returns a bag with values mapped to the number of times they are in the bag.
      *
+     * Example:
+     *
+     *     Bag::from(['hello', 'world', 'world'])
+     *         ->countValues();
+     *     // => Bag of ['hello' => 1, 'world' => 2]
+     *
      * @return static [value => count]
      */
     public function countValues()
@@ -932,7 +983,15 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
      * Returns a bag with the items flattened.
      *
      * Example:
-     *     Bag::from([1, [2, 3], [4]])->flatten()
+     *
+     *     $bag = Bag::from([[1, 2], [[3]], 4])
+     *
+     *     // Flatten one level
+     *     $bag->flatten()
+     *     // => Bag of [1, 2, [3], 4]
+     *
+     *     // Flatten all levels
+     *     $bag->flatten(INF)
      *     // => Bag of [1, 2, 3, 4]
      *
      * @param int $depth How deep to flatten
@@ -982,13 +1041,20 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
     // region Comparison Methods
 
     /**
-     * Returns a bag containing only the key value pairs whose keys are in given.
+     * Returns a bag with only `$keys`.
      *
-     * Keys can be an array as one argument or passed in directly as multiple arguments.
+     * `$keys` should be passed in as multiple parameters if possible.
+     * But if you have a list of keys they can be passed in as the first parameter.
+     * Note that if you can use PHP 5.6+ syntax, you can do `pick(...$keys)` which is preferred.
      *
      * Example:
-     *     $bag = Bag::from(['a' => 'red', 'b' => 'blue', 'c' => 'green']);
-     *     $bag->pick('a', 'c');
+     *
+     *     Bag::from([
+     *         'a' => 'red',
+     *         'b' => 'blue',
+     *         'c' => 'green',
+     *     ])
+     *         ->pick('a', 'c', 'd');
      *     // => Bag of ['a' => 'red', 'c' => 'green']
      *
      * @param iterable|string|string[]|int|int[] ...$keys The keys to keep
@@ -1002,13 +1068,20 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
     }
 
     /**
-     * Returns a bag without the key value pairs whose keys are in given.
+     * Returns a bag without `$keys`.
      *
-     * Keys can be an array as one argument or passed in directly as multiple arguments.
+     * `$keys` should be passed in as multiple parameters if possible.
+     * But if you have a list of keys they can be passed in as the first parameter.
+     * Note that if you can use PHP 5.6+ syntax, you can do `omit(...$keys)` which is preferred.
      *
      * Example:
-     *     $bag = Bag::from(['a' => 'red', 'b' => 'blue', 'c' => 'green']);
-     *     $bag->omit('a', 'c');
+     *
+     *     Bag::from([
+     *         'a' => 'red',
+     *         'b' => 'blue',
+     *         'c' => 'green',
+     *     ])
+     *         ->omit('a', 'c', 'd');
      *     // => Bag of ['b' => 'blue']
      *
      * @param iterable|string|string[]|int|int[] ...$keys The keys to remove
@@ -1022,14 +1095,22 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
     }
 
     /**
-     * Computes the difference of the given collection using values for comparison.
+     * Returns a bag without the values that are also in `$collection`.
      *
-     * The order is determined by the first array.
+     * The order is determined by this bag.
+     *
+     * Example:
+     *
+     *     Bag::from(['red', 'blue', 'green'])
+     *         ->diff(['blue', 'black']);
+     *     // => Bag of ['red', 'green']
+     *
+     * Keys are preserved, so lists could need to be re-indexed.
      *
      * @param iterable      $collection Collection to check against
      * @param callable|null $comparator Optional three-way comparison function
      *
-     * @return static A bag containing all the items from this bag that ARE NOT present in the given collection
+     * @return static
      */
     public function diff($collection, callable $comparator = null)
     {
@@ -1037,11 +1118,34 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
     }
 
     /**
-     * This method is like {@see diff} except that it accepts an $iteratee which is invoked for each item
-     * to generate the criterion by which they're compared.
+     * Returns a bag without the values that are also in `$collection` based on the `$iteratee` function.
+     *
+     * Example:
+     *
+     *     $bag = Bag::from([
+     *         ['name' => 'Alice'],
+     *         ['name' => 'Bob'],
+     *         ['name' => 'Carson'],
+     *     ]);
+     *     $itemsToRemove = [
+     *         ['name' => 'Bob'],
+     *         ['name' => 'Carson'],
+     *         ['name' => 'David'],
+     *     ];
+     *
+     *     // Compare each value by its 'name' property
+     *     $bag->diffBy($itemsToRemove, function ($item) {
+     *         return $item['name'];
+     *     });
+     *     // => Bag of [
+     *     //     ['name' => 'Alice']
+     *     // ]
+     *     // Both items with name 'Bob' and 'Carson' are removed since they are also in $itemsToRemove
+     *
+     * Keys are preserved, so lists could need to be re-indexed.
      *
      * @param iterable $collection Collection to check against
-     * @param callable $iteratee   Function is passed ($value)
+     * @param callable $iteratee   Function is passed `($value)`
      *
      * @return static
      */
@@ -1051,14 +1155,26 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
     }
 
     /**
-     * Computes the difference of the given collection using keys for comparison.
+     * Returns a bag without the keys that are also in `$collection`.
      *
-     * The order is determined by the first array.
+     * The order is determined by this bag.
+     *
+     * Example:
+     *
+     *     Bag::from([
+     *         'a' => 'red',
+     *         'b' => 'blue',
+     *         'c' => 'green',
+     *     ])->diffKeys([
+     *         'b' => 'value does not matter',
+     *         'd' => 'something',
+     *     ]);
+     *     // => Bag of ['a' => 'red', 'c' => 'green']
      *
      * @param iterable      $collection Collection to check against
      * @param callable|null $comparator Optional three-way comparison function
      *
-     * @return static A bag containing all the items from this bag whose keys ARE NOT present in the given collection
+     * @return static
      */
     public function diffKeys($collection, callable $comparator = null)
     {
@@ -1066,11 +1182,29 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
     }
 
     /**
-     * This method is like {@see diffKeys} except that it accepts an $iteratee which is invoked for each item
-     * to generate the criterion by which they're compared.
+     * Returns a bag without the keys that are also in `$collection` based on the `$iteratee` function.
+     *
+     * Example:
+     *
+     *     $bag = Bag::from([
+     *         'a' => 'red',
+     *         'B' => 'blue',
+     *         'c' => 'green',
+     *     ]);
+     *     $itemsToRemove = [
+     *         'b' => null,
+     *         'C' => null,
+     *         'D' => null,
+     *     ];
+     *
+     *     // Compare each key case-insensitively
+     *     $bag->diffKeysBy($itemsToRemove, 'strtolower');
+     *     // => Bag of ['a' => 'red']
+     *     // Keys 'B' and 'c' are removed since all keys are compared after
+     *     // being lower-cased and 'b' and 'C' are also in $itemsToRemove
      *
      * @param iterable $collection Collection to check against
-     * @param callable $iteratee   Function is passed ($value)
+     * @param callable $iteratee   Function is passed `($value)`
      *
      * @return static
      */
@@ -1080,12 +1214,20 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
     }
 
     /**
-     * Computes the intersection of the given collection using values for comparison.
+     * Returns a bag with only the values that are also in `$collection`.
+     *
+     * Example:
+     *
+     *     Bag::from(['red', 'blue', 'green'])
+     *         ->intersect(['blue', 'black']);
+     *     // => Bag of ['blue']
+     *
+     * Keys are preserved, so lists could need to be re-indexed.
      *
      * @param iterable      $collection Collection to check against
      * @param callable|null $comparator Optional three-way comparison function
      *
-     * @return static A bag containing all the items from this bag that ARE present in the given collection
+     * @return static
      */
     public function intersect($collection, callable $comparator = null)
     {
@@ -1093,11 +1235,35 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
     }
 
     /**
-     * This method is like {@see intersect} except that it accepts an $iteratee which is invoked for each item
-     * to generate the criterion by which they're compared.
+     * Returns a bag with only the values that are also in `$collection` based on the `$iteratee` function.
+     *
+     * Example:
+     *
+     *     $bag = Bag::from([
+     *         ['name' => 'Alice'],
+     *         ['name' => 'Bob'],
+     *         ['name' => 'Carson'],
+     *     ]);
+     *     $itemsToKeep = [
+     *         ['name' => 'Bob'],
+     *         ['name' => 'Carson'],
+     *         ['name' => 'David'],
+     *     ];
+     *
+     *     // Compare each value by its 'name' property
+     *     $bag->intersectBy($itemsToKeep, function ($item) {
+     *         return $item['name'];
+     *     });
+     *     // => Bag of [
+     *     //     ['name' => 'Bob']
+     *     //     ['name' => 'Carson']
+     *     // ]
+     *     // Both items with name 'Bob' and 'Carson' are kept since they are also in $itemsToKeep
+     *
+     * Keys are preserved, so lists could need to be re-indexed.
      *
      * @param iterable $collection Collection to check against
-     * @param callable $iteratee   Function is passed ($value)
+     * @param callable $iteratee   Function is passed `($value)`
      *
      * @return static
      */
@@ -1107,12 +1273,24 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
     }
 
     /**
-     * Computes the intersection of the given collection using keys for comparison.
+     * Returns a bag with only the keys that are also in `$collection`.
+     *
+     * Example:
+     *
+     *     Bag::from([
+     *         'a' => 'red',
+     *         'b' => 'blue',
+     *         'c' => 'green',
+     *     ])->intersectKeys([
+     *         'b' => 'value does not matter',
+     *         'd' => 'something',
+     *     ]);
+     *     // => Bag of ['b' => 'blue']
      *
      * @param iterable      $collection Collection to check against
      * @param callable|null $comparator Optional three-way comparison function
      *
-     * @return static A bag containing all the items from this bag whose keys ARE present in the given collection
+     * @return static
      */
     public function intersectKeys($collection, callable $comparator = null)
     {
@@ -1120,11 +1298,29 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
     }
 
     /**
-     * This method is like {@see diffKeys} except that it accepts an $iteratee which is invoked for each item
-     * to generate the criterion by which they're compared.
+     * Returns a bag with only the keys that are also in `$collection` based on the `$iteratee` function.
+     *
+     * Example:
+     *
+     *     $bag = Bag::from([
+     *         'a' => 'red',
+     *         'B' => 'blue',
+     *         'c' => 'green',
+     *     ]);
+     *     $itemsToKeep = [
+     *         'b' => null,
+     *         'C' => null,
+     *         'D' => null,
+     *     ];
+     *
+     *     // Compare each key case-insensitively
+     *     $bag->intersectKeysBy($itemsToKeep, 'strtolower');
+     *     // => Bag of ['B' => 'blue', 'c' => 'green']
+     *     // Keys 'B' and 'c' are kept since all keys are compared after
+     *     // being lower-cased and 'b' and 'C' are also in $itemsToKeep
      *
      * @param iterable $collection Collection to check against
-     * @param callable $iteratee   Function is passed ($value)
+     * @param callable $iteratee   Function is passed `($key)`
      *
      * @return static
      */
@@ -1134,7 +1330,7 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
     }
 
     /**
-     * Do comparison with $func, or with $funcUser if $comparator is given.
+     * Do comparison with `$func`, or with `$funcUser` if `$comparator` is given.
      *
      * @param iterable      $collection
      * @param callable      $func
@@ -1153,7 +1349,7 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
     }
 
     /**
-     * Returns a comparison function that calls the given $iteratee function
+     * Returns a comparison function that calls the `$iteratee` function
      * for both values being compared before comparing them.
      *
      * @param callable $iteratee
@@ -1190,17 +1386,17 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
      * Returns a bag with the values sorted.
      *
      * Sorting flags:
-     * <pre>
-     *  - SORT_REGULAR                  - compare values without changing types
-     *  - SORT_NUMERIC                  - compare values numerically
-     *  - SORT_STRING                   - compare values as strings
-     *  - SORT_STRING | SORT_FLAG_CASE  - compare values as strings ignoring case
-     *  - SORT_LOCALE_STRING            - compare values as strings based on the current locale
-     *  - SORT_NATURAL                  - compare values as strings using "natural ordering"
-     *  - SORT_NATURAL | SORT_FLAG_CASE - compare values as strings using "natural ordering" ignoring case
-     * </pre>
+     * Constant                        | Description
+     * ------------------------------- | ------------------------
+     * `SORT_REGULAR`                  | compare values without changing types
+     * `SORT_NUMERIC`                  | compare values numerically
+     * `SORT_STRING`                   | compare values as strings
+     * `SORT_STRING | SORT_FLAG_CASE`  | compare values as strings ignoring case
+     * `SORT_LOCALE_STRING`            | compare values as strings based on the current locale
+     * `SORT_NATURAL`                  | compare values as strings using "natural ordering"
+     * `SORT_NATURAL | SORT_FLAG_CASE` | compare values as strings using "natural ordering" ignoring case
      *
-     * @param int  $order        SORT_ASC or SORT_DESC
+     * @param int  $order        `SORT_ASC` or `SORT_DESC`
      * @param int  $flags        Sorting flags to modify the behavior
      * @param bool $preserveKeys Whether to preserve keys for maps or to re-index for lists
      *
@@ -1230,23 +1426,26 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
     }
 
     /**
-     * This method is like {@see sortWith} except that it accepts an $iteratee which is invoked for each value
-     * to generate the criterion by which they're compared.
+     * Returns a bag with the values sorted based on the `$iteratee` function.
      *
      * Example:
-     * <code>
-     * $bag = Bag::from([
-     *     ['name' => 'Bob'],
-     *     ['name' => 'Alice'],
-     * ]);
      *
-     * // Sort values by "name" property
-     * $bag->sortBy(function ($item) { return $item['name']; });
-     * // Bag of [['name' => 'Alice], ['name' => 'Bob']]
-     * </code>
+     *     $bag = Bag::from([
+     *         ['name' => 'Bob'],
+     *         ['name' => 'Alice'],
+     *     ]);
      *
-     * @param callable $iteratee     Function given ($value)
-     * @param int      $order        SORT_ASC or SORT_DESC
+     *     // Sort values by "name" property
+     *     $bag->sortBy(function ($item) {
+     *         return $item['name'];
+     *     });
+     *     // => Bag of [
+     *     //     ['name' => 'Alice']
+     *     //     ['name' => 'Bob']
+     *     // ]
+     *
+     * @param callable $iteratee     Function given `($value)`
+     * @param int      $order        `SORT_ASC` or `SORT_DESC`
      * @param bool     $preserveKeys Whether to preserve keys for maps or to re-index for lists
      *
      * @return static
@@ -1257,9 +1456,9 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
     }
 
     /**
-     * Returns a bag with the values sorted with the given $comparator.
+     * Returns a bag with the values sorted with the `$comparator`.
      *
-     * @param callable $comparator   Comparator function given ($itemA, $itemB)
+     * @param callable $comparator   Function given `($itemA, $itemB)`
      * @param bool     $preserveKeys Whether to preserve keys for maps or to re-index for lists
      *
      * @return static
@@ -1277,17 +1476,17 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
      * Returns a bag with the keys sorted.
      *
      * Sorting flags:
-     * <pre>
-     *  - SORT_REGULAR                  - compare keys without changing types
-     *  - SORT_NUMERIC                  - compare keys numerically
-     *  - SORT_STRING                   - compare keys as strings
-     *  - SORT_STRING | SORT_FLAG_CASE  - compare keys as strings ignoring case
-     *  - SORT_LOCALE_STRING            - compare keys as strings based on the current locale
-     *  - SORT_NATURAL                  - compare keys as strings using "natural ordering"
-     *  - SORT_NATURAL | SORT_FLAG_CASE - compare keys as strings using "natural ordering" ignoring case
-     * </pre>
+     * Constant                        | Description
+     * ------------------------------- | ------------------------
+     * `SORT_REGULAR`                  | compare values without changing types
+     * `SORT_NUMERIC`                  | compare values numerically
+     * `SORT_STRING`                   | compare values as strings
+     * `SORT_STRING | SORT_FLAG_CASE`  | compare values as strings ignoring case
+     * `SORT_LOCALE_STRING`            | compare values as strings based on the current locale
+     * `SORT_NATURAL`                  | compare values as strings using "natural ordering"
+     * `SORT_NATURAL | SORT_FLAG_CASE` | compare values as strings using "natural ordering" ignoring case
      *
-     * @param int $order SORT_ASC or SORT_DESC
+     * @param int $order `SORT_ASC` or `SORT_DESC`
      * @param int $flags Sorting flags to modify the behavior
      *
      * @return static
@@ -1308,26 +1507,24 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
     }
 
     /**
-     * This method is like {@see sortKeysWith} except that it accepts an $iteratee which is invoked for each key
-     * to generate the criterion by which they're compared.
+     * Returns a bag with the keys sorted based on the `$iteratee` function.
      *
      * Example:
-     * <code>
-     * $bag = Bag::from([
-     *     'blue'  => 'a',
-     *     'red'   => 'b',
-     *     'black' => 'c',
-     * ]);
      *
-     * // Sort keys by first letter
-     * $bag->sortKeysBy(function ($key) {
-     *     return $key[0];
-     * });
-     * // Bag of ['blue' => 'a', 'black' => 'c', 'red' => 'b']
-     * </code>
+     *     $bag = Bag::from([
+     *         'blue'  => 'a',
+     *         'red'   => 'b',
+     *         'black' => 'c',
+     *     ]);
      *
-     * @param callable $iteratee Function given ($key)
-     * @param int      $order    SORT_ASC or SORT_DESC
+     *     // Sort keys by first letter
+     *     $bag->sortKeysBy(function ($key) {
+     *         return $key[0];
+     *     });
+     *     // Bag of ['blue' => 'a', 'black' => 'c', 'red' => 'b']
+     *
+     * @param callable $iteratee Function given `($key)`
+     * @param int      $order    `SORT_ASC` or `SORT_DESC`
      *
      * @return static
      */
@@ -1337,9 +1534,9 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
     }
 
     /**
-     * Returns a bag with the keys sorted with the given $comparator.
+     * Returns a bag with the keys sorted with the `$comparator`.
      *
-     * @param callable $comparator Comparator function given ($keyA, $keyB)
+     * @param callable $comparator Function given `($keyA, $keyB)`
      *
      * @return static
      */
@@ -1449,29 +1646,38 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
     }
 
     /**
-     * Sets a value at the path given.
-     * Keys will be created as needed to set the value.
+     * Sets a value using path syntax to set nested data.
+     * Inner arrays will be created as needed to set the value.
      *
-     * This function does not support keys that contain "/" or "[]" characters
+     * Example:
+     *
+     *     // Set an item at a nested structure
+     *     $bag->setPath('foo/bar', 'color');
+     *
+     *     // Append to a list in a nested structure
+     *     $bag->get($data, 'foo/baz');
+     *     // => null
+     *     $bag->setPath('foo/baz/[]', 'a');
+     *     $bag->setPath('foo/baz/[]', 'b');
+     *     $bag->getPath('foo/baz');
+     *     // => ['a', 'b']
+     *
+     * This function does not support keys that contain `/` or `[]` characters
      * because these are special tokens used when traversing the data structure.
-     * A value may be appended to an existing array by using "[]" as the final
+     * A value may be appended to an existing array by using `[]` as the final
      * key of a path.
      *
-     *     // Set an item at a nested structure.
-     *     setPath('foo/bar', 'color');
-     *
-     *     // Append to a list in a nested structure.
-     *     setPath('foo/baz/[]', 'a');
-     *     setPath('foo/baz/[]', 'b');
-     *     getPath('foo/baz'); // returns ['a', 'b']
-     *
-     * Note: To set values not directly under ArrayAccess objects their
-     * offsetGet() method needs to be defined as return by reference.
-     *
-     *     public function &offsetGet($offset) {}
+     * <br>
+     * Note: To set values in arrays that are in `ArrayAccess` objects their
+     * `offsetGet()` method needs to be able to return arrays by reference.
+     * See {@see MutableBag} for an example of this.
      *
      * @param string $path  The path to traverse and set the value at
      * @param mixed  $value The value to set
+     *
+     * @throws \RuntimeException when trying to set a path that travels through a scalar value
+     * @throws \RuntimeException when trying to set a value in an array that is in an `ArrayAccess` object
+     *                           which cannot retrieve arrays by reference
      *
      * @deprecated since 1.1 and will be removed in 2.0. Use {@see MutableBag} instead.
      */
@@ -1495,12 +1701,12 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
     }
 
     /**
-     * Removes and returns the item at the specified key from the bag.
+     * Removes and returns the item at the specified `$key` from the bag.
      *
-     * @param string|int $key     The kex of the item to remove
+     * @param string|int $key     The key of the item to remove
      * @param mixed|null $default The default value to return if the key is not found
      *
-     * @return mixed The removed item or default, if the bag did not contain the item
+     * @return mixed The removed item or `$default`, if the bag did not contain the item
      *
      * @deprecated since 1.1 and will be removed in 2.0. Use {@see MutableBag} instead.
      */
@@ -1569,7 +1775,11 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
     // region Internal Methods
 
     /**
-     * {@inheritdoc}
+     * Don't call directly. Used for IteratorAggregate.
+     *
+     * @internal
+     *
+     * @inheritdoc
      */
     public function getIterator()
     {

@@ -3,7 +3,7 @@
 namespace Bolt\Collection;
 
 /**
- * This is an OO implementation of almost all of PHP's array functionality.
+ * An OO implementation of PHP's array functionality and more.
  *
  * Generally only methods dealing with a single item mutate the current bag,
  * all others return a new bag.
@@ -35,7 +35,7 @@ class MutableBag extends Bag
     }
 
     /**
-     * Sets a item by key.
+     * Sets a value by key.
      *
      * @param string $key   The key
      * @param mixed  $value The value
@@ -46,29 +46,38 @@ class MutableBag extends Bag
     }
 
     /**
-     * Sets a value at the path given.
-     * Keys will be created as needed to set the value.
+     * Sets a value using path syntax to set nested data.
+     * Inner arrays will be created as needed to set the value.
      *
-     * This function does not support keys that contain "/" or "[]" characters
+     * Example:
+     *
+     *     // Set an item at a nested structure
+     *     $bag->setPath('foo/bar', 'color');
+     *
+     *     // Append to a list in a nested structure
+     *     $bag->get($data, 'foo/baz');
+     *     // => null
+     *     $bag->setPath('foo/baz/[]', 'a');
+     *     $bag->setPath('foo/baz/[]', 'b');
+     *     $bag->getPath('foo/baz');
+     *     // => ['a', 'b']
+     *
+     * This function does not support keys that contain `/` or `[]` characters
      * because these are special tokens used when traversing the data structure.
-     * A value may be appended to an existing array by using "[]" as the final
+     * A value may be appended to an existing array by using `[]` as the final
      * key of a path.
      *
-     *     // Set an item at a nested structure.
-     *     setPath('foo/bar', 'color');
-     *
-     *     // Append to a list in a nested structure.
-     *     setPath('foo/baz/[]', 'a');
-     *     setPath('foo/baz/[]', 'b');
-     *     getPath('foo/baz'); // returns ['a', 'b']
-     *
-     * Note: To set values not directly under ArrayAccess objects their
-     * offsetGet() method needs to be defined as return by reference.
-     *
-     *     public function &offsetGet($offset) {}
+     * <br>
+     * Note: To set values in arrays that are in `ArrayAccess` objects their
+     * `offsetGet()` method needs to be able to return arrays by reference.
+     * See {@see MutableBag} for an example of this.
      *
      * @param string $path  The path to traverse and set the value at
      * @param mixed  $value The value to set
+     *
+     * @throws \RuntimeException when trying to set a path that travels through a scalar value
+     * @throws \RuntimeException when trying to set a value in an array that is in an `ArrayAccess` object
+     *                           which cannot retrieve arrays by reference
      */
     public function setPath($path, $value)
     {
@@ -84,12 +93,12 @@ class MutableBag extends Bag
     }
 
     /**
-     * Removes and returns the item at the specified key from the bag.
+     * Removes and returns the item at the specified `$key` from the bag.
      *
-     * @param string|int $key     The kex of the item to remove
+     * @param string|int $key     The key of the item to remove
      * @param mixed|null $default The default value to return if the key is not found
      *
-     * @return mixed The removed item or default, if the bag did not contain the item
+     * @return mixed The removed item or `$default`, if the bag did not contain the item
      */
     public function remove($key, $default = null)
     {
@@ -104,24 +113,28 @@ class MutableBag extends Bag
     }
 
     /**
-     * Removes and returns a value at the path given.
-     *
-     * This function does not support keys that contain "/" or "[]" characters
-     * because these are special tokens used when traversing the data structure.
+     * Removes and returns a value using path syntax to retrieve nested data.
      *
      * Example:
-     *     removePath('foo/bar');
+     *
+     *     $bag->removePath('foo/bar');
      *     // => 'baz'
-     *     removePath('foo/bar');
+     *     $bag->removePath('foo/bar');
      *     // => null
      *
-     * Note: To set values not directly under ArrayAccess objects their
-     * offsetGet() method needs to be defined as return by reference.
+     * This function does not support keys that contain `/`.
      *
-     *     public function &offsetGet($offset) {}
+     * <br>
+     * Note: To remove values in arrays that are in `ArrayAccess` objects their
+     * `offsetGet()` method needs to be able to return arrays by reference.
+     * See {@see MutableBag} for an example of this.
      *
      * @param string     $path    Path to traverse and remove the value at
      * @param mixed|null $default Default value to return if key does not exist
+     *
+     * @throws \RuntimeException when trying to set a path that travels through a scalar value
+     * @throws \RuntimeException when trying to set a value in an array that is in an `ArrayAccess` object
+     *                           which cannot retrieve arrays by reference
      *
      * @return mixed
      */
