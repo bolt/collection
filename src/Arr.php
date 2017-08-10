@@ -314,7 +314,7 @@ class Arr
                 return;
             }
 
-            if ($current instanceof Bag) {
+            if ($current instanceof Bag && !($current instanceof MutableBag)) {
                 Deprecated::warn('Mutating items in a ' . Bag::class, 1.1, 'Use a ' . MutableBag::class . ' instead.');
             }
 
