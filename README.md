@@ -1,8 +1,13 @@
 # Bolt Collection
 
+[![travis](https://api.travis-ci.org/bolt/collection.svg)](https://travis-ci.org/bolt/collection)
+[![codecov](https://codecov.io/gh/bolt/collection/branch/master/graph/badge.svg)](https://codecov.io/gh/bolt/collection)
+
 This library provides objects and functionality to help with groups of items and data sets.
 
-## `Bag` and `ImmutableBag`
+Check out the [API documentation][api-docs].
+
+## `Bag` and `MutableBag`
 
 These are object-oriented implementations of arrays. 
 
@@ -37,7 +42,7 @@ $bag->keys()->join(', '); // "debug, color, db"
 $bag->isAssociative(); // true
 ```
 ```php
-$colors = Bag::from(['red', 'blue', 'yellow'])
+$colors = MutableBag::of('red', 'blue', 'yellow')
     ->merge(['green', 'orange'])
 ;
 $colors->isIndexed(); // true
@@ -59,57 +64,12 @@ $colors->removeFirst(); // "purple"
 $colors->removeFirst(); // "red"
 ```
 
-These examples only cover half of the functionality.
+These examples only cover half of the functionality. See the [API documentation][api-docs] for more.
 
-All methods asking for a collection will accept other `Bags`, `arrays`,
+All methods accepting a collection will accept other `Bags`, `arrays`,
 `stdClass`, and `Traversable` objects. This makes it very easy work with any
 collection-like object. 
 
-`Nulls` and `mixed` values are also supported which are converted to empty
-arrays and an array with one item respectively.
-
-
-### What's `ImmutableBag` for?
-
-All of the methods in `ImmutableBag` are queries of the current state or return
-a _new_ modified Bag. Thus an `ImmutableBag` cannot be mutated. `Bag` extends
-`ImmutableBag` and provides methods to add, modify, and remove items. 
-
-In PHP, arrays are always passed/returned by value, but objects are 
-passed/returned by reference. 
-
-Let's look at an example:
-
-```php
-class Foo
-{
-    /** @var array */
-    private $items;
-
-    public function getItems()
-    {
-        return $this->items;
-    }
-}
-
-$foo = new Foo();
-$items = $foo->getItems();
-$items[] = 'hello';
-```
-
-Since `Foo::$items` is an array, the `$items` returned from `getItems()` is a
-different array. Thus appending "hello" to the array does not modify 
-`Foo::$items`.
-
-Now pretend `Foo::$items` is a `Bag`. Since it is an object, the `$items`
-returned from `getItems()` is the same object as `Foo::$items`. This means you
-can modify `Foo`'s internal state externally. `Foo` may not want this, so it
-can return an `ImmutableBag` instead. 
-
-It could be argued that a clone of the Bag could be returned from the method
-instead. This is true, but it would lead to more processing for each query of
-the bag, and could lead to WTF's if the user is trying to modify the clone and
-it's not applying to the object.
 
 ### Hasn't this been done already?
 
@@ -124,3 +84,5 @@ Doctrine's `ArrayCollection` is also another, more robust, option. It works
 well for maps and lists, but still has limited functionality due to needing to
 interface with a database collection. It also has some annoyances, like 
 `getKeys()` returns an `array` instead of another `ArrayCollection` instance.
+
+[api-docs]: https://docs.bolt.cm/api/bolt/collection/master/classes.html

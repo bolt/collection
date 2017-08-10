@@ -8,6 +8,27 @@ namespace Bolt\Collection;
  * Generally only methods dealing with a single item mutate the current bag,
  * all others return a new bag.
  *
+ * <br>
+ * Be careful when exposing a `MutableBag` publicly, like with a getter method.
+ *
+ * It is an object so it is returned by reference,
+ * as opposed to arrays that are returned by value.
+ * This means someone could take the bag and modify it, and since it is the same
+ * instance the modifications are applied to the bag in your class as well.
+ * There could be some use-cases for this as long as you are aware of it.
+ *
+ * This can be mitigated by type-hinting or documenting that the return value is
+ * a `Bag`, since `MutableBag` _extends_ `Bag`, so only read-only access is allowed.
+ *
+ * This still returns the `MutableBag` though so the documented API could
+ * be broken and the bag modified anyways.
+ * If you want to _ensure_ that the bag cannot be not modified, you can return a
+ * copy of the bag with the getter method. You can copy the bag by calling
+ * the {@see Bag::immutable} or {@see mutable} methods or by _cloning_ it.
+ * This does have a performance penalty though, as every call to the getter creates
+ * a new bag. Also if the documented return value is still `MutableBag` it could
+ * be confusing to users trying to modify the bag and not seeing results take affect.
+ *
  * @author Carson Full <carsonfull@gmail.com>
  */
 class MutableBag extends Bag
