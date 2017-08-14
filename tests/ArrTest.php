@@ -4,6 +4,7 @@ namespace Bolt\Collection\Tests;
 
 use Bolt\Collection\Arr;
 use Bolt\Collection\Bag;
+use Bolt\Collection\MutableBag;
 use Bolt\Collection\Tests\Fixtures\TestArrayLike;
 use Bolt\Collection\Tests\Fixtures\TestBadDefinitionArrayLike;
 use Bolt\Collection\Tests\Fixtures\TestBadLogicArrayLike;
@@ -320,7 +321,7 @@ class ArrTest extends TestCase
         if ($e instanceof \RuntimeException) {
             $this->assertEquals(
                 "Cannot set 'a/foo/bar', because 'a' is an " . ltrim($cls, '\\') .
-                ' which does not return arrays by reference from its offsetGet() method. See ' . Bag::class .
+                ' which does not return arrays by reference from its offsetGet() method. See ' . MutableBag::class .
                 ' for an example of how to do this.',
                 $e->getMessage()
             );

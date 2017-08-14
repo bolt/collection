@@ -330,7 +330,7 @@ class Arr
                         $path,
                         $invalidKey,
                         get_class($current),
-                        Bag::class
+                        MutableBag::class
                     ),
                     0,
                     $e
