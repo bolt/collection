@@ -5,6 +5,7 @@ namespace Bolt\Collection;
 use ArrayAccess;
 use Bolt\Common\Assert;
 use Bolt\Common\Deprecated;
+use Bolt\Common\Thrower;
 use InvalidArgumentException;
 use RuntimeException;
 use Traversable;
@@ -322,7 +323,7 @@ class Arr
             }
 
             $next = null;
-            if ($current instanceof ArrayAccess && !static::canReturnArraysByReference($current, $key, $next)) {
+            if ($current instanceof ArrayAccess && !static::canReturnArraysByReference($current, $key, $next, $e)) {
                 throw new RuntimeException(
                     sprintf(
                         "Cannot set '%s', because '%s' is an %s which does not return arrays by reference from its offsetGet() method. See %s for an example of how to do this.",
@@ -330,9 +331,12 @@ class Arr
                         $invalidKey,
                         get_class($current),
                         Bag::class
-                    )
+                    ),
+                    0,
+                    $e
                 );
             }
+
             // If checking if object can return arrays by ref needed to fetch the value in the object then
             // use that so we don't have to fetch the value again.
             if ($next !== null) {
@@ -567,10 +571,13 @@ class Arr
      * @param ArrayAccess      $obj
      * @param string           $key   The key to try with
      * @param ArrayAccess|null $value The value if it needed to be fetched
+     * @param \ErrorException  $ex
+     *
+     * @throws \ErrorException
      *
      * @return bool
      */
-    private static function canReturnArraysByReference(ArrayAccess $obj, $key, &$value)
+    private static function canReturnArraysByReference(ArrayAccess $obj, $key, &$value, &$ex)
     {
         static $supportedClasses = [
             // Add our classes by default to help with performance since we can
@@ -582,6 +589,7 @@ class Arr
             \ArrayIterator::class          => true,
             \RecursiveArrayIterator::class => true,
         ];
+        static $noErrors = [];
 
         $class = get_class($obj);
 
@@ -602,13 +610,29 @@ class Arr
             return $supportedClasses[$class];
         }
 
-        /*
-         * This could trigger a notice error if the offsetGet() method is defined to return reference
-         * but does not return a variable by reference. This is a logic error, but for performance we
-         * are not setting & removing an error handler for every key. The developer should have these
-         * being converted to an exception anyways or ignored for production.
-         */
-        $value1 = &$obj[$key];
+        if (isset($noErrors[$class])) {
+            $value1 = &$obj[$key];
+        } else {
+            Thrower::set();
+            try {
+                $value1 = &$obj[$key];
+            } catch (\ErrorException $e) {
+                $msg = $e->getMessage();
+                if ($msg === 'Only variable references should be returned by reference' ||
+                    strpos($msg, 'Indirect modification of overloaded element') === 0
+                ) {
+                    $ex = $e;
+
+                    return $supportedClasses[$class] = false;
+                }
+                throw $e;
+            } finally {
+                restore_error_handler();
+            }
+
+            // We assume the object is not going to trigger warnings at this point
+            $noErrors[$class] = true;
+        }
 
         // We cannot validate this result because objects are always returned by reference (and scalars do not matter).
         if (!is_array($value1)) {

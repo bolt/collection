@@ -5,8 +5,9 @@ namespace Bolt\Collection\Tests;
 use Bolt\Collection\Arr;
 use Bolt\Collection\Bag;
 use Bolt\Collection\Tests\Fixtures\TestArrayLike;
-use Bolt\Collection\Tests\Fixtures\TestBadArrayLike;
+use Bolt\Collection\Tests\Fixtures\TestBadDefinitionArrayLike;
 use Bolt\Collection\Tests\Fixtures\TestBadLogicArrayLike;
+use Bolt\Collection\Tests\Fixtures\TestBadReferenceExpressionArrayLike;
 use Bolt\Collection\Tests\Fixtures\TestColumn;
 use PHPUnit\Framework\TestCase;
 
@@ -286,8 +287,9 @@ class ArrTest extends TestCase
     public function provideSetArraysReturnedByReferenceError()
     {
         return [
-            'bad definition' => [TestBadArrayLike::class],
+            'bad definition' => [TestBadDefinitionArrayLike::class],
             'bad logic'      => [TestBadLogicArrayLike::class],
+            'bad expression' => [TestBadReferenceExpressionArrayLike::class],
         ];
     }
 
@@ -308,13 +310,11 @@ class ArrTest extends TestCase
             'a' => new $cls(),
         ];
 
-        $level = error_reporting(E_ALL & ~E_NOTICE);
         $e = null;
         try {
             Arr::set($data, 'a/foo/bar', 'baz');
         } catch (\Exception $e) {
         } catch (\Throwable $e) {
-            error_reporting($level);
         }
 
         if ($e instanceof \RuntimeException) {

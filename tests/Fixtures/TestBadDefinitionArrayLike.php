@@ -2,7 +2,7 @@
 
 namespace Bolt\Collection\Tests\Fixtures;
 
-class TestBadArrayLike extends TestArrayLike
+class TestBadDefinitionArrayLike extends TestArrayLike
 {
     public function offsetGet($offset) // Bad: no "&"
     {
