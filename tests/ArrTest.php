@@ -4,8 +4,11 @@ namespace Bolt\Collection\Tests;
 
 use Bolt\Collection\Arr;
 use Bolt\Collection\Bag;
+use Bolt\Collection\MutableBag;
 use Bolt\Collection\Tests\Fixtures\TestArrayLike;
-use Bolt\Collection\Tests\Fixtures\TestBadArrayLike;
+use Bolt\Collection\Tests\Fixtures\TestBadDefinitionArrayLike;
+use Bolt\Collection\Tests\Fixtures\TestBadLogicArrayLike;
+use Bolt\Collection\Tests\Fixtures\TestBadReferenceExpressionArrayLike;
 use Bolt\Collection\Tests\Fixtures\TestColumn;
 use PHPUnit\Framework\TestCase;
 
@@ -282,25 +285,31 @@ class ArrTest extends TestCase
         Arr::set($data, 'a/foo', 'bar');
     }
 
+    public function provideSetArraysReturnedByReferenceError()
+    {
+        return [
+            'bad definition' => [TestBadDefinitionArrayLike::class],
+            'bad logic'      => [TestBadLogicArrayLike::class],
+            'bad expression' => [TestBadReferenceExpressionArrayLike::class],
+        ];
+    }
+
     /**
+     * Test that Arr::set can determine which objects can return arrays by reference.
+     *
      * Test that Arr::set throws exception when trying to indirectly modify an ArrayAccess object.
-     * This happens when one tries to set a value on a sub array/object of an AA object.
-     * Ex: A/B/C where A is an object. B can be anything.
+     * This happens when one tries get a reference to an array inside an AA object.
+     * Ex: A/B/C where A is an AA object. B is an array.
+     *
+     * @dataProvider provideSetArraysReturnedByReferenceError
+     *
+     * @param string $cls
      */
-    public function testSetNestedIndirectModificationError()
+    public function testSetArraysReturnedByReferenceError($cls)
     {
         $data = [
-            'a' => new TestBadArrayLike(),
+            'a' => new $cls(),
         ];
-
-        $prevReporting = error_reporting(E_ALL);
-        $expectedErrorHandler = set_error_handler('var_dump');
-        restore_error_handler();
-
-        $errors = new \ArrayObject();
-        set_error_handler(function ($type, $message) use ($errors) {
-            $errors[] = [$type, $message];
-        });
 
         $e = null;
         try {
@@ -308,31 +317,11 @@ class ArrTest extends TestCase
         } catch (\Exception $e) {
         } catch (\Throwable $e) {
         }
-        error_reporting($prevReporting);
-        restore_error_handler();
-
-        $actualErrorHandler = set_error_handler('var_dump');
-        restore_error_handler();
-
-        $message = 'Arr::set did not restore previous error handler';
-        if (is_array($expectedErrorHandler)) {
-            $this->assertInternalType('array', $actualErrorHandler, $message);
-            $this->assertSame($expectedErrorHandler[0], $actualErrorHandler[0], $message);
-            $this->assertSame($expectedErrorHandler[1], $actualErrorHandler[1], $message);
-        } else {
-            $this->assertSame($expectedErrorHandler, $actualErrorHandler, $message);
-        }
-
-        $this->assertArraySubset(
-            [[E_USER_NOTICE, 'Some notice']],
-            $errors->getArrayCopy(),
-            'Arr::set did not call previous error handler for non indirect modification errors'
-        );
 
         if ($e instanceof \RuntimeException) {
             $this->assertEquals(
-                "Cannot set 'a/foo/bar', because 'a' is an " . TestBadArrayLike::class .
-                ' which does not return arrays by reference from its offsetGet() method. See ' . Bag::class .
+                "Cannot set 'a/foo/bar', because 'a' is an " . ltrim($cls, '\\') .
+                ' which does not return arrays by reference from its offsetGet() method. See ' . MutableBag::class .
                 ' for an example of how to do this.',
                 $e->getMessage()
             );

@@ -1,6 +1,18 @@
 CHANGELOG for Bolt Collection
 =============================
 
+1.1.1
+-----
+
+Released 2017-08-18 ([commits since v1.1.0](https://github.com/bolt/collection/compare/v1.1.0...v1.1.1))
+
+- Change: `Arr::set` classes `offsetGet` is only called once per key now in case there is non-light logic in that method
+- Change: `Arr::set` now it only gets a known key from an AA object and doesn't need to set a test value
+- Fixed: `Arr::set` not throwing exception when object cannot return an array by reference for a pre-existing key
+- Fixed: `Arr::set` false positives for incorrect logic in AA::offsetGet() methods
+- Fixed: `Arr::set` deprecation warnings not to trigger for `MutableBag`
+- Fixed: `Arr::set` exception message to reference `MutableBag` instead of `Bag`
+
 1.1.0
 -----
 

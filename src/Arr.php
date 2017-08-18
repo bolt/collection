@@ -5,6 +5,7 @@ namespace Bolt\Collection;
 use ArrayAccess;
 use Bolt\Common\Assert;
 use Bolt\Common\Deprecated;
+use Bolt\Common\Thrower;
 use InvalidArgumentException;
 use RuntimeException;
 use Traversable;
@@ -309,30 +310,42 @@ class Arr
                 } else {
                     $current[$key] = $value;
                 }
-            } elseif (isset($current[$key])) {
-                if ($current instanceof Bag) {
-                    Deprecated::warn('Mutating items in a ' . Bag::class, 1.1, 'Use a ' . MutableBag::class . ' instead.');
-                }
 
-                $current = &$current[$key];
-            } elseif (!static::canReturnArraysByReference($current)) {
+                return;
+            }
+
+            if ($current instanceof Bag && !($current instanceof MutableBag)) {
+                Deprecated::warn('Mutating items in a ' . Bag::class, 1.1, 'Use a ' . MutableBag::class . ' instead.');
+            }
+
+            if (!isset($current[$key])) {
+                $current[$key] = [];
+            }
+
+            $next = null;
+            if ($current instanceof ArrayAccess && !static::canReturnArraysByReference($current, $key, $next, $e)) {
                 throw new RuntimeException(
                     sprintf(
                         "Cannot set '%s', because '%s' is an %s which does not return arrays by reference from its offsetGet() method. See %s for an example of how to do this.",
                         $path,
                         $invalidKey,
                         get_class($current),
-                        Bag::class
-                    )
+                        MutableBag::class
+                    ),
+                    0,
+                    $e
                 );
-            } else {
-                if ($current instanceof Bag) {
-                    Deprecated::warn('Mutating items in a ' . Bag::class, 1.1, 'Use a ' . MutableBag::class . ' instead.');
-                }
+            }
 
-                $current[$key] = [];
+            // If checking if object can return arrays by ref needed to fetch the value in the object then
+            // use that so we don't have to fetch the value again.
+            if ($next !== null) {
+                $current = &$next;
+                unset($next); // so assigning null above doesn't wipe out actual data
+            } else {
                 $current = &$current[$key];
             }
+
             $invalidKey = $key;
         }
     }
@@ -553,66 +566,89 @@ class Arr
     }
 
     /**
-     * Determine whether the array/object can return arrays by reference.
+     * Determine whether the ArrayAccess object can return by reference.
      *
-     * @param ArrayAccess|array $obj
+     * @param ArrayAccess      $obj
+     * @param string           $key   The key to try with
+     * @param ArrayAccess|null $value The value if it needed to be fetched
+     * @param \ErrorException  $ex
+     *
+     * @throws \ErrorException
      *
      * @return bool
      */
-    private static function canReturnArraysByReference($obj)
+    private static function canReturnArraysByReference(ArrayAccess $obj, $key, &$value, &$ex)
     {
-        if (is_array($obj)) {
-            return true;
-        }
-
         static $supportedClasses = [
             // Add our classes by default to help with performance since we can
-            ImmutableBag::class => false,
-            Bag::class          => true, // but deprecated
-            MutableBag::class   => true,
+            Bag::class                     => true, // but deprecated
+            MutableBag::class              => true,
+
+            // These fail reflection check below even though they work fine :rolleyes:
+            \ArrayObject::class            => true,
+            \ArrayIterator::class          => true,
+            \RecursiveArrayIterator::class => true,
         ];
+        static $noErrors = [];
 
         $class = get_class($obj);
-        if (isset($supportedClasses[$class])) {
+
+        /*
+         * Check to see if offsetGet() is defined to return reference (with "&" before method name).
+         * This prevents us from triggering indirect modification notices.
+         * We know for sure that the method cannot return by reference if not defined correctly, so we cache false.
+         * We do not know for sure that the method can return by reference if it is defined correctly, so we cache
+         * null instead of true. This allows the reflection check to only happen once, but still drop through to
+         * validation below.
+         */
+        if (!isset($supportedClasses[$class])) {
+            $supportedClasses[$class] = (new \ReflectionMethod($obj, 'offsetGet'))->returnsReference() ? null : false;
+        }
+
+        // If definite value return that, else run validation below.
+        if ($supportedClasses[$class] !== null) {
             return $supportedClasses[$class];
         }
 
-        $testKey = '__reference_test';
-        $obj[$testKey] = [];
-        if (!defined('HHVM_VERSION')) {
-            $prev = set_error_handler('var_dump');
-            restore_error_handler();
-            set_error_handler(function ($type, $message, $file, $line) use ($prev, &$supportedClasses) {
-                $regex = '/Indirect modification of overloaded element of ([\w\\\\]+) has no effect/';
-                if (preg_match($regex, $message, $matches)) {
-                    $supportedClasses[$matches[1]] = false;
-                } elseif ($prev) {
-                    return call_user_func($prev, $type, $message, $file, $line);
-                } else {
-                    // return false to let PHP handle error
-                    return false;
-                }
-            });
+        if (isset($noErrors[$class])) {
+            $value1 = &$obj[$key];
+        } else {
+            Thrower::set();
             try {
-                $test = &$obj[$testKey];
-                if (!isset($supportedClasses[$class])) {
-                    $supportedClasses[$class] = true;
+                $value1 = &$obj[$key];
+            } catch (\ErrorException $e) {
+                $msg = $e->getMessage();
+                if ($msg === 'Only variable references should be returned by reference' ||
+                    strpos($msg, 'Indirect modification of overloaded element') === 0
+                ) {
+                    $ex = $e;
+
+                    return $supportedClasses[$class] = false;
                 }
+                throw $e;
             } finally {
                 restore_error_handler();
             }
-        } else {
-            $test1 = &$obj[$testKey];
-            $test2 = &$obj[$testKey];
-            $test1[$testKey] = 'test';
-            if ($test1 === $test2) {
-                $supportedClasses[$class] = true;
-                unset($test1[$testKey]);
-            } else {
-                $supportedClasses[$class] = false;
-            }
+
+            // We assume the object is not going to trigger warnings at this point
+            $noErrors[$class] = true;
         }
-        unset($obj[$testKey]);
+
+        // We cannot validate this result because objects are always returned by reference (and scalars do not matter).
+        if (!is_array($value1)) {
+            // return value (via parameter) so set() doesn't have to fetch the item again.
+            // We cannot do this if is an array because it will be the value instead of the reference.
+            $value = $value1;
+
+            return true;
+        }
+
+        // Verify the object can return arrays by reference.
+        $value2 = &$obj[$key];
+        $testKey = uniqid('__reference_test_');
+        $value1[$testKey] = 'test';
+        $supportedClasses[$class] = isset($value2[$testKey]);
+        unset($value1[$testKey]);
 
         return $supportedClasses[$class];
     }
