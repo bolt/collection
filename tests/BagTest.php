@@ -709,6 +709,23 @@ class BagTest extends TestCase
         $this->assertBagResult(['bar' => 'foo', 'world' => 'second'], $bag, $actual);
     }
 
+    public function testFlipEmpty()
+    {
+        $bag = $this->createBag([]);
+
+        $actual = $bag->flip();
+
+        $this->assertBagResult([], $bag, $actual);
+    }
+
+    /**
+     * @expectedException \LogicException
+     */
+    public function testFlipObjects()
+    {
+        $this->createBag([new \stdClass()])->flip();
+    }
+
     public function testReduce()
     {
         $bag = $this->createBag([1, 2, 3, 4]);

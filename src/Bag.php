@@ -5,11 +5,13 @@ namespace Bolt\Collection;
 use ArrayAccess;
 use Bolt\Common\Assert;
 use Bolt\Common\Deprecated;
+use Bolt\Common\Thrower;
 use Countable;
+use ErrorException;
 use InvalidArgumentException;
 use IteratorAggregate;
 use JsonSerializable;
-use RuntimeException;
+use LogicException;
 use stdClass;
 
 /**
@@ -862,18 +864,20 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
      *
      * If a value has several occurrences, the latest key will be used as its value, and all others will be lost.
      *
-     * @throws RuntimeException when flip fails
+     * @throws LogicException when values are not strings or integers
      *
      * @return static
      */
     public function flip()
     {
-        $arr = array_flip($this->items);
-        if ($arr === null) {
-            throw new RuntimeException('Failed to flip the items.');
+        if (!$this->items) {
+            return $this->createFrom([]);
         }
-
-        return $this->createFrom($arr);
+        try {
+            return $this->createFrom(Thrower::call('array_flip', $this->items));
+        } catch (ErrorException $e) {
+            throw new LogicException('Only string and integer values can be flipped');
+        }
     }
 
     /**
