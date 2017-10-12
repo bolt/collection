@@ -319,7 +319,7 @@ class BagTest extends TestCase
      */
     public function testIndexOf($expectedIndex, $item, $fromIndex = 0, $items = null)
     {
-        $bag = $this->createBag($items ?: ['a', 'b', 'c', 'a', 'b', 'c']);
+        $bag = $this->createBag($items !== null ? $items : ['a', 'b', 'c', 'a', 'b', 'c']);
 
         $this->assertSame($expectedIndex, $bag->indexOf($item, $fromIndex));
     }
@@ -368,7 +368,7 @@ class BagTest extends TestCase
      */
     public function testLastIndexOf($expectedIndex, $item, $fromIndex = null, $items = null)
     {
-        $bag = $this->createBag($items ?: ['a', 'b', 'c', 'a', 'b', 'c']);
+        $bag = $this->createBag($items !== null ? $items : ['a', 'b', 'c', 'a', 'b', 'c']);
 
         $this->assertSame($expectedIndex, $bag->lastIndexOf($item, $fromIndex));
     }
@@ -707,6 +707,23 @@ class BagTest extends TestCase
         $actual = $bag->flip();
 
         $this->assertBagResult(['bar' => 'foo', 'world' => 'second'], $bag, $actual);
+    }
+
+    public function testFlipEmpty()
+    {
+        $bag = $this->createBag([]);
+
+        $actual = $bag->flip();
+
+        $this->assertBagResult([], $bag, $actual);
+    }
+
+    /**
+     * @expectedException \LogicException
+     */
+    public function testFlipObjects()
+    {
+        $this->createBag([new \stdClass()])->flip();
     }
 
     public function testReduce()

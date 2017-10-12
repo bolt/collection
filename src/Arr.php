@@ -184,7 +184,7 @@ class Arr
 
         $path = explode('/', $path);
 
-        while (null !== ($part = array_shift($path))) {
+        while (($part = array_shift($path)) !== null) {
             if (!($data instanceof ArrayAccess) && !is_array($data)) {
                 return false;
             }
@@ -224,7 +224,7 @@ class Arr
 
         $path = explode('/', $path);
 
-        while (null !== ($part = array_shift($path))) {
+        while (($part = array_shift($path)) !== null) {
             if ((!is_array($data) && !($data instanceof ArrayAccess)) || !isset($data[$part])) {
                 return $default;
             }
@@ -292,7 +292,7 @@ class Arr
 
         $invalidKey = null;
         $current = &$data;
-        while (null !== ($key = array_shift($queue))) {
+        while (($key = array_shift($queue)) !== null) {
             if (!is_array($current) && !($current instanceof ArrayAccess)) {
                 throw new RuntimeException(
                     sprintf(
