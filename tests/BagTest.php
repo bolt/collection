@@ -319,7 +319,7 @@ class BagTest extends TestCase
      */
     public function testIndexOf($expectedIndex, $item, $fromIndex = 0, $items = null)
     {
-        $bag = $this->createBag($items ?: ['a', 'b', 'c', 'a', 'b', 'c']);
+        $bag = $this->createBag($items !== null ? $items : ['a', 'b', 'c', 'a', 'b', 'c']);
 
         $this->assertSame($expectedIndex, $bag->indexOf($item, $fromIndex));
     }
@@ -368,7 +368,7 @@ class BagTest extends TestCase
      */
     public function testLastIndexOf($expectedIndex, $item, $fromIndex = null, $items = null)
     {
-        $bag = $this->createBag($items ?: ['a', 'b', 'c', 'a', 'b', 'c']);
+        $bag = $this->createBag($items !== null ? $items : ['a', 'b', 'c', 'a', 'b', 'c']);
 
         $this->assertSame($expectedIndex, $bag->lastIndexOf($item, $fromIndex));
     }

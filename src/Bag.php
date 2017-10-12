@@ -458,6 +458,11 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
         Assert::integer($fromIndex);
 
         $count = count($this->items);
+
+        if ($count === 0) {
+            return;
+        }
+
         $last = $count - 2;
 
         $index = $fromIndex < 0 ? max($last + $fromIndex, -1) : min($fromIndex - 1, $last);
@@ -484,6 +489,10 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
         Assert::nullOrInteger($fromIndex);
 
         $index = count($this->items);
+
+        if ($index === 0) {
+            return;
+        }
 
         if ($fromIndex !== null) {
             $index = $fromIndex < 0 ? max($index + $fromIndex, 1) : min($fromIndex + 1, $index);
