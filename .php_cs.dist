@@ -2,5 +2,5 @@
 
 return Bolt\CsFixer\Config::create()
     ->addRules(Bolt\CsFixer\Rules::create()->risky())
-    ->in('.')
+    ->in('src', 'tests')
 ;
