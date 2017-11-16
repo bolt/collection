@@ -64,7 +64,7 @@ class Arr
         $arr = static::from($iterable);
 
         foreach ($arr as $key => $value) {
-            if ($value instanceof \stdClass || is_iterable($value)) {
+            if ($value instanceof \stdClass || \is_iterable($value)) {
                 $value = static::fromRecursive($value);
             }
             $arr[$key] = $value;
@@ -461,7 +461,7 @@ class Arr
      */
     public static function isIndexed($iterable)
     {
-        if (!is_iterable($iterable)) {
+        if (!\is_iterable($iterable)) {
             return false;
         }
 
@@ -505,7 +505,7 @@ class Arr
     {
         $mapped = [];
         foreach ($iterable as $key => $value) {
-            $mapped[$key] = is_iterable($value) ?
+            $mapped[$key] = \is_iterable($value) ?
                 static::doMapRecursive($value, $callable) :
                 $callable($value, $key);
         }
@@ -548,10 +548,10 @@ class Arr
                 $value = iterator_to_array($value);
             }
             if (is_array($value) && static::isAssociative($value)
-                && isset($merged[$key]) && is_iterable($merged[$key])
+                && isset($merged[$key]) && \is_iterable($merged[$key])
             ) {
                 $merged[$key] = static::replaceRecursive($merged[$key], $value);
-            } elseif ($value === null && isset($merged[$key]) && is_iterable($merged[$key])) {
+            } elseif ($value === null && isset($merged[$key]) && \is_iterable($merged[$key])) {
                 // Convert iterable to array to be consistent.
                 if ($merged[$key] instanceof Traversable) {
                     $merged[$key] = iterator_to_array($merged[$key]);
