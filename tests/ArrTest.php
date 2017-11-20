@@ -114,7 +114,6 @@ class ArrTest extends TestCase
     {
         return [
             'data not accessible' => [new \EmptyIterator(), 'foo'],
-            'path not string'     => [[], false],
             'empty path'          => [[], ''],
         ];
     }
@@ -381,12 +380,6 @@ class ArrTest extends TestCase
         $traversable = new \ArrayObject($array);
         $this->assertEquals($indexed, Arr::isIndexed($traversable));
         $this->assertEquals(!$indexed, Arr::isAssociative($traversable));
-    }
-
-    public function testNonArraysAreNotIndexedOrAssociative()
-    {
-        $this->assertFalse(Arr::isIndexed('derp'));
-        $this->assertFalse(Arr::isAssociative('derp'));
     }
 
     public function testMapRecursive()

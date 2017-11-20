@@ -30,7 +30,7 @@ class Arr
      *
      * @return array
      */
-    public static function from($iterable)
+    public static function from($iterable): array
     {
         if (is_array($iterable)) {
             return $iterable;
@@ -59,7 +59,7 @@ class Arr
      *
      * @return array
      */
-    public static function fromRecursive($iterable)
+    public static function fromRecursive($iterable): array
     {
         $arr = static::from($iterable);
 
@@ -104,10 +104,8 @@ class Arr
      *
      * @return array
      */
-    public static function column($input, $columnKey, $indexKey = null)
+    public static function column(iterable $input, $columnKey, $indexKey = null)
     {
-        Assert::isIterable($input);
-
         $output = [];
 
         foreach ($input as $row) {
@@ -177,7 +175,7 @@ class Arr
      *
      * @return bool
      */
-    public static function has($data, $path)
+    public static function has($data, string $path)
     {
         Assert::isArrayAccessible($data);
         Assert::stringNotEmpty($path);
@@ -217,7 +215,7 @@ class Arr
      *
      * @return mixed|null
      */
-    public static function get($data, $path, $default = null)
+    public static function get($data, string $path, $default = null)
     {
         Assert::isArrayAccessible($data);
         Assert::stringNotEmpty($path);
@@ -271,7 +269,7 @@ class Arr
      * @throws \RuntimeException when trying to set a value in an array that is in an `ArrayAccess` object
      *                           which cannot retrieve arrays by reference
      */
-    public static function set(&$data, $path, $value)
+    public static function set(&$data, string $path, $value): void
     {
         Assert::isArrayAccessible($data);
         Assert::stringNotEmpty($path);
@@ -373,7 +371,7 @@ class Arr
      *
      * @return mixed
      */
-    public static function remove(&$data, $path, $default = null)
+    public static function remove(&$data, string $path, $default = null)
     {
         if (!static::$unsetMarker) {
             static::$unsetMarker = new \stdClass();
@@ -404,7 +402,7 @@ class Arr
      *
      * @return bool
      */
-    public static function isAccessible($value)
+    public static function isAccessible($value): bool
     {
         return $value instanceof ArrayAccess || is_array($value);
     }
@@ -418,7 +416,7 @@ class Arr
      *
      * @return bool
      */
-    public static function isAssociative($iterable)
+    public static function isAssociative(iterable $iterable): bool
     {
         if ($iterable instanceof Traversable) {
             $iterable = iterator_to_array($iterable);
@@ -439,12 +437,8 @@ class Arr
      *
      * @return bool
      */
-    public static function isIndexed($iterable)
+    public static function isIndexed(iterable $iterable): bool
     {
-        if (!is_iterable($iterable)) {
-            return false;
-        }
-
         return !static::isAssociative($iterable);
     }
 
@@ -458,7 +452,7 @@ class Arr
      *
      * @return array
      */
-    public static function mapRecursive($iterable, callable $callable)
+    public static function mapRecursive(iterable $iterable, callable $callable): array
     {
         Assert::isIterable($iterable);
 
@@ -481,7 +475,7 @@ class Arr
      *
      * @return array
      */
-    private static function doMapRecursive($iterable, callable $callable)
+    private static function doMapRecursive(iterable $iterable, callable $callable): array
     {
         $mapped = [];
         foreach ($iterable as $key => $value) {
@@ -510,10 +504,8 @@ class Arr
      *
      * @return array The combined array
      */
-    public static function replaceRecursive($iterable1, $iterable2)
+    public static function replaceRecursive(iterable $iterable1, iterable $iterable2): array
     {
-        Assert::allIsIterable([$iterable1, $iterable2]);
-
         if ($iterable1 instanceof Traversable) {
             $iterable1 = iterator_to_array($iterable1);
         }
@@ -557,7 +549,7 @@ class Arr
      *
      * @return bool
      */
-    private static function canReturnArraysByReference(ArrayAccess $obj, $key, &$value, &$ex)
+    private static function canReturnArraysByReference(ArrayAccess $obj, string $key, ?ArrayAccess &$value, ?\ErrorException &$ex): bool
     {
         static $supportedClasses = [
             // Add our classes by default to help with performance since we can
@@ -651,10 +643,8 @@ class Arr
      *
      * @return array
      */
-    public static function flatten($iterable, $depth = 1)
+    public static function flatten(iterable $iterable, /* int */$depth = 1): array
     {
-        Assert::isIterable($iterable);
-
         return static::doFlatten(
             $iterable,
             $depth,
@@ -672,7 +662,7 @@ class Arr
      *
      * @return array
      */
-    private static function doFlatten($iterable, $depth, callable $predicate, array $result = [])
+    private static function doFlatten(iterable $iterable, /* int */$depth, callable $predicate, array $result = []): array
     {
         foreach ($iterable as $item) {
             if ($depth >= 1 && $predicate($item)) {

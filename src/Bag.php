@@ -112,7 +112,7 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
      *
      * @return array
      */
-    public function toArray()
+    public function toArray(): array
     {
         return $this->items;
     }
@@ -122,7 +122,7 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
      *
      * @return array
      */
-    public function toArrayRecursive()
+    public function toArrayRecursive(): array
     {
         return Arr::fromRecursive($this->items);
     }
@@ -153,7 +153,7 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
      *
      * @return bool
      */
-    public function has($key)
+    public function has($key): bool
     {
         return isset($this->items[$key]) || array_key_exists($key, $this->items);
     }
@@ -172,7 +172,7 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
      *
      * @return bool
      */
-    public function hasPath($path)
+    public function hasPath(string $path): bool
     {
         return Arr::has($this->items, $path);
     }
@@ -186,7 +186,7 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
      *
      * @return bool
      */
-    public function hasItem($item)
+    public function hasItem($item): bool
     {
         return in_array($item, $this->items, true);
     }
@@ -221,7 +221,7 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
      *
      * @return mixed
      */
-    public function getPath($path, $default = null)
+    public function getPath(string $path, $default = null)
     {
         return Arr::get($this->items, $path, $default);
     }
@@ -231,7 +231,7 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
      *
      * @return int
      */
-    public function count()
+    public function count(): int
     {
         return count($this->items);
     }
@@ -241,7 +241,7 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
      *
      * @return bool
      */
-    public function isEmpty()
+    public function isEmpty(): bool
     {
         return !$this->items;
     }
@@ -273,7 +273,7 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
      *
      * @return string A string representation of all the items with the separator between them
      */
-    public function join($separator)
+    public function join(string $separator): string
     {
         return implode($separator, $this->items);
     }
@@ -281,7 +281,7 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
     /**
      * Returns the sum of the values in this list.
      *
-     * @return number
+     * @return float|int
      */
     public function sum()
     {
@@ -291,7 +291,7 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
     /**
      * Returns the product of the values in this list.
      *
-     * @return number
+     * @return float|int
      */
     public function product()
     {
@@ -305,7 +305,7 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
      *
      * @return bool
      */
-    public function isAssociative()
+    public function isAssociative(): bool
     {
         return Arr::isAssociative($this->items);
     }
@@ -317,7 +317,7 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
      *
      * @return bool
      */
-    public function isIndexed()
+    public function isIndexed(): bool
     {
         return !$this->isAssociative();
     }
@@ -334,7 +334,7 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
      *
      * @return int|string|null The index or key of the item or null if the item was not found
      */
-    public function indexOf($item, $fromIndex = 0)
+    public function indexOf($item, int $fromIndex = 0)
     {
         foreach ($this->iterateFromIndex($fromIndex) as $key => $value) {
             if ($value === $item) {
@@ -357,7 +357,7 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
      *
      * @return int|string|null The index or key of the item or null if the item was not found
      */
-    public function lastIndexOf($item, $fromIndex = null)
+    public function lastIndexOf($item, ?int $fromIndex = null)
     {
         foreach ($this->iterateReverseFromIndex($fromIndex) as $key => $value) {
             if ($value === $item) {
@@ -378,7 +378,7 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
      *
      * @return mixed|null
      */
-    public function find(callable $predicate, $fromIndex = 0)
+    public function find(callable $predicate, int $fromIndex = 0)
     {
         $index = $this->findKey($predicate, $fromIndex);
 
@@ -395,7 +395,7 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
      *
      * @return mixed|null
      */
-    public function findLast(callable $predicate, $fromIndex = null)
+    public function findLast(callable $predicate, ?int $fromIndex = null)
     {
         $index = $this->findLastKey($predicate, $fromIndex);
 
@@ -412,7 +412,7 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
      *
      * @return mixed|null
      */
-    public function findKey(callable $predicate, $fromIndex = 0)
+    public function findKey(callable $predicate, int $fromIndex = 0)
     {
         foreach ($this->iterateFromIndex($fromIndex) as $key => $value) {
             if ($predicate($value, $key)) {
@@ -433,7 +433,7 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
      *
      * @return mixed|null
      */
-    public function findLastKey(callable $predicate, $fromIndex = null)
+    public function findLastKey(callable $predicate, ?int $fromIndex = null)
     {
         foreach ($this->iterateReverseFromIndex($fromIndex) as $key => $value) {
             if ($predicate($value, $key)) {
@@ -453,10 +453,8 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
      *
      * @return \Generator
      */
-    private function iterateFromIndex($fromIndex)
+    private function iterateFromIndex(int $fromIndex): \Generator
     {
-        Assert::integer($fromIndex);
-
         $count = count($this->items);
 
         if ($count === 0) {
@@ -478,16 +476,14 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
     /**
      * Reverse iterate through the items starting at the given index.
      *
-     * @param int $fromIndex The starting index to search from. Default is the last index.
-     *                       Can be negative to start from that far from the end of the array.
-     *                       If index is out of bounds, it will be moved to first/last index.
+     * @param int|null $fromIndex The starting index to search from. Default is the last index.
+     *                            Can be negative to start from that far from the end of the array.
+     *                            If index is out of bounds, it will be moved to first/last index.
      *
      * @return \Generator
      */
-    private function iterateReverseFromIndex($fromIndex)
+    private function iterateReverseFromIndex(?int $fromIndex): \Generator
     {
-        Assert::nullOrInteger($fromIndex);
-
         $index = count($this->items);
 
         if ($index === 0) {
@@ -567,11 +563,9 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
      *
      * @return static
      */
-    public function call(callable $callable, /*...*/$args = null)
+    public function call(callable $callable, ...$args)
     {
-        // Optimized for no args. Argument unpacking is still faster once we get to use 5.6 syntax
-        $result = $args ? call_user_func_array($callable, [$this->items] + func_get_args()) : $callable($this->items);
-        // $result = $callable($this->items, ...$args);
+        $result = $callable($this->items, ...$args);
 
         return $this->createFrom(Arr::from($result));
     }
@@ -581,7 +575,7 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
      *
      * @return MutableBag
      */
-    public function mutable()
+    public function mutable(): MutableBag
     {
         return new MutableBag($this->items);
     }
@@ -591,7 +585,7 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
      *
      * @return Bag
      */
-    public function immutable()
+    public function immutable(): self
     {
         return new self($this->items);
     }
@@ -721,7 +715,7 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
      *
      * @return static
      */
-    public function replace($collection)
+    public function replace(iterable $collection)
     {
         return $this->createFrom(array_replace($this->items, Arr::from($collection)));
     }
@@ -740,7 +734,7 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
      *
      * @return static
      */
-    public function replaceRecursive($collection)
+    public function replaceRecursive(iterable $collection)
     {
         return $this->createFrom(Arr::replaceRecursive($this->items, Arr::from($collection)));
     }
@@ -759,7 +753,7 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
      *
      * @return static
      */
-    public function defaults($collection)
+    public function defaults(iterable $collection)
     {
         return $this->createFrom(array_replace(Arr::from($collection), $this->items));
     }
@@ -772,7 +766,7 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
      *
      * @return static
      */
-    public function defaultsRecursive($collection)
+    public function defaultsRecursive(iterable $collection)
     {
         return $this->createFrom(Arr::replaceRecursive(Arr::from($collection), $this->items));
     }
@@ -787,7 +781,7 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
      *
      * @return static
      */
-    public function merge($list)
+    public function merge(iterable $list)
     {
         return $this->createFrom(array_merge($this->items, Arr::from($list)));
     }
@@ -804,7 +798,7 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
      *
      * @return static
      */
-    public function slice($offset, $length = null, $preserveKeys = false)
+    public function slice(int $offset, int $length = null, bool $preserveKeys = false)
     {
         return $this->createFrom(array_slice($this->items, $offset, $length, $preserveKeys));
     }
@@ -938,7 +932,7 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
      *
      * @return static|static[] Returns a multidimensional bag, with each dimension containing $size items
      */
-    public function chunk($size, $preserveKeys = false)
+    public function chunk(int $size, bool $preserveKeys = false)
     {
         $create = function ($items) {
             return $this->createFrom($items);
@@ -971,7 +965,7 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
      *
      * @return static
      */
-    public function pad($size, $value)
+    public function pad(int $size, $value)
     {
         return $this->createFrom(array_pad($this->items, $size, $value));
     }
@@ -1011,7 +1005,7 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
      *
      * @return static
      */
-    public function flatten($depth = 1)
+    public function flatten(int $depth = 1)
     {
         return $this->createFrom(Arr::flatten($this->items, $depth));
     }
@@ -1025,7 +1019,7 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
      *
      * @return static
      */
-    public function randomValues($size)
+    public function randomValues(int $size)
     {
         $keys = $this->randomKeys($size);
 
@@ -1041,7 +1035,7 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
      *
      * @return static
      */
-    public function randomKeys($size)
+    public function randomKeys(int $size)
     {
         Assert::notEmpty($this->items, 'Cannot retrieve a random key/value for empty bags.');
         Assert::range($size, 1, $this->count(), 'Expected $size to be between 1 and %3$s (the number of items in the bag). Got: %s');
@@ -1125,7 +1119,7 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
      *
      * @return static
      */
-    public function diff($collection, callable $comparator = null)
+    public function diff(iterable $collection, callable $comparator = null)
     {
         return $this->doCompare($collection, 'array_diff', 'array_udiff', $comparator);
     }
@@ -1162,7 +1156,7 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
      *
      * @return static
      */
-    public function diffBy($collection, callable $iteratee)
+    public function diffBy(iterable $collection, callable $iteratee)
     {
         return $this->diff($collection, $this->iterateeToComparator($iteratee));
     }
@@ -1189,7 +1183,7 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
      *
      * @return static
      */
-    public function diffKeys($collection, callable $comparator = null)
+    public function diffKeys(iterable $collection, callable $comparator = null)
     {
         return $this->doCompare($collection, 'array_diff_key', 'array_diff_ukey', $comparator);
     }
@@ -1221,7 +1215,7 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
      *
      * @return static
      */
-    public function diffKeysBy($collection, callable $iteratee)
+    public function diffKeysBy(iterable $collection, callable $iteratee)
     {
         return $this->diffKeys($collection, $this->iterateeToComparator($iteratee));
     }
@@ -1242,7 +1236,7 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
      *
      * @return static
      */
-    public function intersect($collection, callable $comparator = null)
+    public function intersect(iterable $collection, callable $comparator = null)
     {
         return $this->doCompare($collection, 'array_intersect', 'array_uintersect', $comparator);
     }
@@ -1280,7 +1274,7 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
      *
      * @return static
      */
-    public function intersectBy($collection, callable $iteratee)
+    public function intersectBy(iterable $collection, callable $iteratee)
     {
         return $this->intersect($collection, $this->iterateeToComparator($iteratee));
     }
@@ -1305,7 +1299,7 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
      *
      * @return static
      */
-    public function intersectKeys($collection, callable $comparator = null)
+    public function intersectKeys(iterable $collection, callable $comparator = null)
     {
         return $this->doCompare($collection, 'array_intersect_key', 'array_intersect_ukey', $comparator);
     }
@@ -1337,7 +1331,7 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
      *
      * @return static
      */
-    public function intersectKeysBy($collection, callable $iteratee)
+    public function intersectKeysBy(iterable $collection, callable $iteratee)
     {
         return $this->intersectKeys($collection, $this->iterateeToComparator($iteratee));
     }
@@ -1352,7 +1346,7 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
      *
      * @return static
      */
-    private function doCompare($collection, callable $func, callable $funcUser, callable $comparator = null)
+    private function doCompare(iterable $collection, callable $func, callable $funcUser, callable $comparator = null)
     {
         if ($comparator) {
             return $this->createFrom($funcUser($this->items, Arr::from($collection), $comparator));
@@ -1370,7 +1364,7 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
      *
      * @return \Closure
      */
-    private function iterateeToComparator(callable $iteratee, $ascending = true)
+    private function iterateeToComparator(callable $iteratee, bool $ascending = true): callable
     {
         return function ($a, $b) use ($iteratee, $ascending) {
             // PHP 7.0
@@ -1415,7 +1409,7 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
      *
      * @return static
      */
-    public function sort($order = SORT_ASC, $flags = SORT_REGULAR, $preserveKeys = false)
+    public function sort(int $order = SORT_ASC, int $flags = SORT_REGULAR, bool $preserveKeys = false)
     {
         $this->validateSortArgs($order, $flags);
 
@@ -1463,7 +1457,7 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
      *
      * @return static
      */
-    public function sortBy(callable $iteratee, $order = SORT_ASC, $preserveKeys = false)
+    public function sortBy(callable $iteratee, int $order = SORT_ASC, bool $preserveKeys = false)
     {
         return $this->sortWith($this->iterateeToComparator($iteratee, $order === SORT_ASC), $preserveKeys);
     }
@@ -1476,7 +1470,7 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
      *
      * @return static
      */
-    public function sortWith(callable $comparator, $preserveKeys = false)
+    public function sortWith(callable $comparator, bool $preserveKeys = false)
     {
         $items = $this->items;
 
@@ -1504,7 +1498,7 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
      *
      * @return static
      */
-    public function sortKeys($order = SORT_ASC, $flags = SORT_REGULAR)
+    public function sortKeys(int $order = SORT_ASC, int $flags = SORT_REGULAR)
     {
         $this->validateSortArgs($order, $flags);
 
@@ -1541,7 +1535,7 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
      *
      * @return static
      */
-    public function sortKeysBy(callable $iteratee, $order = SORT_ASC)
+    public function sortKeysBy(callable $iteratee, int $order = SORT_ASC)
     {
         return $this->sortKeysWith($this->iterateeToComparator($iteratee, $order === SORT_ASC));
     }
@@ -1566,7 +1560,7 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
      * @param int $order
      * @param int $flags
      */
-    private function validateSortArgs($order, $flags)
+    private function validateSortArgs(int $order, int $flags): void
     {
         Assert::oneOf($order, [SORT_ASC, SORT_DESC], 'Expected $order to be SORT_ASC or SORT_DESC. Got: %s');
 
@@ -1592,7 +1586,7 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
      *
      * @return static
      */
-    public function reverse($preserveKeys = false)
+    public function reverse(bool $preserveKeys = false)
     {
         return $this->createFrom(array_reverse($this->items, $preserveKeys));
     }
@@ -1670,7 +1664,7 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
      *
      * @inheritdoc
      */
-    public function offsetSet($offset, $value)
+    public function offsetSet($offset, $value): void
     {
         throw new BadMethodCallException(sprintf('Cannot modify items on an %s', __CLASS__));
     }
@@ -1682,7 +1676,7 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
      *
      * @inheritdoc
      */
-    public function offsetUnset($offset)
+    public function offsetUnset($offset): void
     {
         throw new BadMethodCallException(sprintf('Cannot remove items from an %s', __CLASS__));
     }

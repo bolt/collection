@@ -42,7 +42,7 @@ class MutableBag extends Bag
      *
      * @param mixed $item The item to append
      */
-    public function add($item)
+    public function add($item): void
     {
         $this->items[] = $item;
     }
@@ -52,7 +52,7 @@ class MutableBag extends Bag
      *
      * @param mixed $item The item to prepend
      */
-    public function prepend($item)
+    public function prepend($item): void
     {
         array_unshift($this->items, $item);
     }
@@ -63,7 +63,7 @@ class MutableBag extends Bag
      * @param string $key   The key
      * @param mixed  $value The value
      */
-    public function set($key, $value)
+    public function set($key, $value): void
     {
         $this->items[$key] = $value;
     }
@@ -102,7 +102,7 @@ class MutableBag extends Bag
      * @throws \RuntimeException when trying to set a value in an array that is in an `ArrayAccess` object
      *                           which cannot retrieve arrays by reference
      */
-    public function setPath($path, $value)
+    public function setPath(string $path, $value): void
     {
         Arr::set($this->items, $path, $value);
     }
@@ -110,7 +110,7 @@ class MutableBag extends Bag
     /**
      * Remove all items from bag.
      */
-    public function clear()
+    public function clear(): void
     {
         $this->items = [];
     }
@@ -161,7 +161,7 @@ class MutableBag extends Bag
      *
      * @return mixed
      */
-    public function removePath($path, $default = null)
+    public function removePath(string $path, $default = null)
     {
         return Arr::remove($this->items, $path, $default);
     }
@@ -171,7 +171,7 @@ class MutableBag extends Bag
      *
      * @param mixed $item
      */
-    public function removeItem($item)
+    public function removeItem($item): void
     {
         $key = array_search($item, $this->items, true);
 
@@ -228,7 +228,7 @@ class MutableBag extends Bag
      *
      * @inheritdoc
      */
-    public function offsetSet($offset, $value)
+    public function offsetSet($offset, $value): void
     {
         if ($offset === null) {
             $this->add($value);
@@ -244,7 +244,7 @@ class MutableBag extends Bag
      *
      * @inheritdoc
      */
-    public function offsetUnset($offset)
+    public function offsetUnset($offset): void
     {
         $this->remove($offset);
     }
