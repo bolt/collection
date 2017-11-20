@@ -20,7 +20,7 @@ trait BagLegacyTrait
         return new MutableBag($items);
     }
 
-    public function testAdd()
+    public function testAdd(): void
     {
         $bag = $this->createBag();
 
@@ -30,7 +30,7 @@ trait BagLegacyTrait
         $this->assertEquals(['foo', 'bar'], $bag->toArray());
     }
 
-    public function testPrepend()
+    public function testPrepend(): void
     {
         $bag = $this->createBag();
 
@@ -40,7 +40,7 @@ trait BagLegacyTrait
         $this->assertEquals(['bar', 'foo'], $bag->toArray());
     }
 
-    public function testSet()
+    public function testSet(): void
     {
         $bag = $this->createBag();
 
@@ -49,7 +49,7 @@ trait BagLegacyTrait
         $this->assertEquals(['foo' => 'bar'], $bag->toArray());
     }
 
-    public function testSetPath()
+    public function testSetPath(): void
     {
         $bag = $this->createBag([
             'items' => new ArrayObject([
@@ -66,7 +66,7 @@ trait BagLegacyTrait
         $this->assertEquals(['red', 'blue'], $bag->getPath('items/colors'));
     }
 
-    public function testClear()
+    public function testClear(): void
     {
         $bag = $this->createBag(['foo', 'bar']);
 
@@ -75,7 +75,7 @@ trait BagLegacyTrait
         $this->assertTrue($bag->isEmpty());
     }
 
-    public function testRemove()
+    public function testRemove(): void
     {
         $bag = $this->createBag(['foo' => 'bar']);
 
@@ -86,7 +86,7 @@ trait BagLegacyTrait
         $this->assertEquals('default', $bag->remove('derp', 'default'));
     }
 
-    public function testRemoveItem()
+    public function testRemoveItem(): void
     {
         $bag = $this->createBag(['foo', 'bar']);
 
@@ -95,7 +95,7 @@ trait BagLegacyTrait
         $this->assertFalse($bag->hasItem('bar'));
     }
 
-    public function testRemoveFirst()
+    public function testRemoveFirst(): void
     {
         $bag = $this->createBag(['foo', 'bar']);
 
@@ -105,7 +105,7 @@ trait BagLegacyTrait
         $this->assertEmpty($bag);
     }
 
-    public function testRemoveLast()
+    public function testRemoveLast(): void
     {
         $bag = $this->createBag(['foo', 'bar']);
 
@@ -115,7 +115,7 @@ trait BagLegacyTrait
         $this->assertEmpty($bag);
     }
 
-    public function testOffsetGet()
+    public function testOffsetGet(): void
     {
         $bag = $this->createBag(['foo' => 'bar']);
 
@@ -123,13 +123,13 @@ trait BagLegacyTrait
         $this->assertNull($bag['nope']);
     }
 
-    public function testOffsetGetByReference()
+    public function testOffsetGetByReference(): void
     {
         $bag = $this->createBag(['arr' => ['1']]);
 
         // Assert arrays are able to be modified by reference.
         $errors = new \ArrayObject();
-        set_error_handler(function ($type, $message) use ($errors) {
+        set_error_handler(function ($type, $message) use ($errors): void {
             $errors[] = [$type, $message];
         });
 
@@ -142,7 +142,7 @@ trait BagLegacyTrait
         $this->assertEquals(['1', '2'], $bag['arr']);
     }
 
-    public function testOffsetSet()
+    public function testOffsetSet(): void
     {
         $bag = $this->createBag();
 
@@ -155,7 +155,7 @@ trait BagLegacyTrait
         $this->assertEquals('world', $bag[1]);
     }
 
-    public function testOffsetUnset()
+    public function testOffsetUnset(): void
     {
         $bag = $this->createBag(['foo' => 'bar']);
 

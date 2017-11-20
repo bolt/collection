@@ -19,7 +19,7 @@ class MutableBagTest extends BagTest
         return new MutableBag($items);
     }
 
-    public function testRemovePath()
+    public function testRemovePath(): void
     {
         $bag = $this->createBag(
             [
