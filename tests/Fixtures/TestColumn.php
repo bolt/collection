@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Bolt\Collection\Tests\Fixtures;
 
 class TestColumn
