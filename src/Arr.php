@@ -5,7 +5,6 @@ namespace Bolt\Collection;
 use ArrayAccess;
 use Bolt\Common\Assert;
 use Bolt\Common\Thrower;
-use InvalidArgumentException;
 use RuntimeException;
 use Traversable;
 
@@ -406,22 +405,6 @@ class Arr
     public static function isAccessible($value)
     {
         return $value instanceof ArrayAccess || is_array($value);
-    }
-
-    /**
-     * Asserts that the given value is an array or an object implementing `ArrayAccess`.
-     *
-     * @param mixed $value
-     *
-     * @throws InvalidArgumentException when it is not
-     *
-     * @deprecated since 1.0 and will be removed in 2.0. Use {@see \Bolt\Common\Assert::isArrayAccessible} instead.
-     */
-    public static function assertAccessible($value)
-    {
-        Deprecated::method(1.0, 'Bolt\Common\Assert::isArrayAccessible');
-
-        Assert::isArrayAccessible($value);
     }
 
     /**
