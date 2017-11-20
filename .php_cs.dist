@@ -1,6 +1,6 @@
 <?php
 
 return Bolt\CsFixer\Config::create()
-    ->addRules(Bolt\CsFixer\Rules::create()->risky())
+    ->addRules(Bolt\CsFixer\Rules::create()->risky()->php71())
     ->in('src', 'tests')
 ;
