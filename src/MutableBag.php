@@ -4,6 +4,11 @@ declare(strict_types=1);
 
 namespace Bolt\Collection;
 
+use function array_pop;
+use function array_search;
+use function array_shift;
+use function array_unshift;
+
 /**
  * An OO implementation of PHP's array functionality and more.
  *

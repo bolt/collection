@@ -9,6 +9,20 @@ use Bolt\Common\Assert;
 use Bolt\Common\Thrower;
 use RuntimeException;
 use Traversable;
+use function array_key_exists;
+use function array_keys;
+use function array_shift;
+use function count;
+use function explode;
+use function get_class;
+use function is_array;
+use function is_iterable;
+use function is_object;
+use function iterator_to_array;
+use function range;
+use function restore_error_handler;
+use function sprintf;
+use function uniqid;
 
 /**
  * Array functions. All of these methods accept `Traversable` or `ArrayAccess` objects in addition to arrays.
