@@ -3,8 +3,8 @@
 namespace Bolt\Collection;
 
 use ArrayAccess;
+use BadMethodCallException;
 use Bolt\Common\Assert;
-use Bolt\Common\Deprecated;
 use Bolt\Common\Thrower;
 use Countable;
 use ErrorException;
@@ -16,8 +16,6 @@ use stdClass;
 
 /**
  * An OO implementation of PHP's array functionality and more (minus mutability).
- *
- * All methods that allow mutation are deprecated, use {@see MutableBag} for those use cases instead.
  *
  * @author Carson Full <carsonfull@gmail.com>
  */
@@ -1613,178 +1611,6 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
 
     //endregion
 
-    // region Mutating Methods (Deprecated)
-
-    /**
-     * Adds an item to the end of this bag.
-     *
-     * @param mixed $item The item to append
-     *
-     * @deprecated since 1.1 and will be removed in 2.0. Use {@see MutableBag} instead.
-     */
-    public function add($item)
-    {
-        Deprecated::method(1.1, MutableBag::class);
-
-        $this->items[] = $item;
-    }
-
-    /**
-     * Adds an item to the beginning of this bag.
-     *
-     * @param mixed $item The item to prepend
-     *
-     * @deprecated since 1.1 and will be removed in 2.0. Use {@see MutableBag} instead.
-     */
-    public function prepend($item)
-    {
-        Deprecated::method(1.1, MutableBag::class);
-
-        array_unshift($this->items, $item);
-    }
-
-    /**
-     * Sets a item by key.
-     *
-     * @param string $key   The key
-     * @param mixed  $value The value
-     *
-     * @deprecated since 1.1 and will be removed in 2.0. Use {@see MutableBag} instead.
-     */
-    public function set($key, $value)
-    {
-        Deprecated::method(1.1, MutableBag::class);
-
-        $this->items[$key] = $value;
-    }
-
-    /**
-     * Sets a value using path syntax to set nested data.
-     * Inner arrays will be created as needed to set the value.
-     *
-     * Example:
-     *
-     *     // Set an item at a nested structure
-     *     $bag->setPath('foo/bar', 'color');
-     *
-     *     // Append to a list in a nested structure
-     *     $bag->get($data, 'foo/baz');
-     *     // => null
-     *     $bag->setPath('foo/baz/[]', 'a');
-     *     $bag->setPath('foo/baz/[]', 'b');
-     *     $bag->getPath('foo/baz');
-     *     // => ['a', 'b']
-     *
-     * This function does not support keys that contain `/` or `[]` characters
-     * because these are special tokens used when traversing the data structure.
-     * A value may be appended to an existing array by using `[]` as the final
-     * key of a path.
-     *
-     * <br>
-     * Note: To set values in arrays that are in `ArrayAccess` objects their
-     * `offsetGet()` method needs to be able to return arrays by reference.
-     * See {@see MutableBag} for an example of this.
-     *
-     * @param string $path  The path to traverse and set the value at
-     * @param mixed  $value The value to set
-     *
-     * @throws \RuntimeException when trying to set a path that travels through a scalar value
-     * @throws \RuntimeException when trying to set a value in an array that is in an `ArrayAccess` object
-     *                           which cannot retrieve arrays by reference
-     *
-     * @deprecated since 1.1 and will be removed in 2.0. Use {@see MutableBag} instead.
-     */
-    public function setPath($path, $value)
-    {
-        Deprecated::method(1.1, MutableBag::class);
-
-        Arr::set($this->items, $path, $value);
-    }
-
-    /**
-     * Remove all items from bag.
-     *
-     * @deprecated since 1.1 and will be removed in 2.0. Use {@see MutableBag} instead.
-     */
-    public function clear()
-    {
-        Deprecated::method(1.1, MutableBag::class);
-
-        $this->items = [];
-    }
-
-    /**
-     * Removes and returns the item at the specified `$key` from the bag.
-     *
-     * @param string|int $key     The key of the item to remove
-     * @param mixed|null $default The default value to return if the key is not found
-     *
-     * @return mixed The removed item or `$default`, if the bag did not contain the item
-     *
-     * @deprecated since 1.1 and will be removed in 2.0. Use {@see MutableBag} instead.
-     */
-    public function remove($key, $default = null)
-    {
-        Deprecated::method(1.1, MutableBag::class);
-
-        if (!$this->has($key)) {
-            return $default;
-        }
-
-        $removed = $this->items[$key];
-        unset($this->items[$key]);
-
-        return $removed;
-    }
-
-    /**
-     * Removes the given item from the bag if it is found.
-     *
-     * @param mixed $item
-     *
-     * @deprecated since 1.1 and will be removed in 2.0. Use {@see MutableBag} instead.
-     */
-    public function removeItem($item)
-    {
-        Deprecated::method(1.1, MutableBag::class);
-
-        $key = array_search($item, $this->items, true);
-
-        if ($key !== false) {
-            unset($this->items[$key]);
-        }
-    }
-
-    /**
-     * Removes and returns the first item in the list.
-     *
-     * @return mixed|null
-     *
-     * @deprecated since 1.1 and will be removed in 2.0. Use {@see MutableBag} instead.
-     */
-    public function removeFirst()
-    {
-        Deprecated::method(1.1, MutableBag::class);
-
-        return array_shift($this->items);
-    }
-
-    /**
-     * Removes and returns the last item in the list.
-     *
-     * @return mixed|null
-     *
-     * @deprecated since 1.1 and will be removed in 2.0. Use {@see MutableBag} instead.
-     */
-    public function removeLast()
-    {
-        Deprecated::method(1.1, MutableBag::class);
-
-        return array_pop($this->items);
-    }
-
-    // endregion
-
     // region Internal Methods
 
     /**
@@ -1830,17 +1656,9 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
      *
      * @inheritdoc
      */
-    public function &offsetGet($offset)
+    public function offsetGet($offset)
     {
-        // Returning values by reference is deprecated, but we have no way of knowing here.
-        //return $this->get($offset);
-
-        $result = null;
-        if (isset($this->items[$offset])) {
-            $result = &$this->items[$offset];
-        }
-
-        return $result;
+        return $this->get($offset);
     }
 
     /**
@@ -1852,15 +1670,7 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
      */
     public function offsetSet($offset, $value)
     {
-        //throw new BadMethodCallException(sprintf('Cannot modify items on an %s', __CLASS__));
-
-        Deprecated::method(1.1, MutableBag::class);
-
-        if ($offset === null) {
-            $this->items[] = $value;
-        } else {
-            $this->items[$offset] = $value;
-        }
+        throw new BadMethodCallException(sprintf('Cannot modify items on an %s', __CLASS__));
     }
 
     /**
@@ -1872,11 +1682,7 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
      */
     public function offsetUnset($offset)
     {
-        //throw new BadMethodCallException(sprintf('Cannot remove items from an %s', __CLASS__));
-
-        Deprecated::method(1.1, MutableBag::class);
-
-        unset($this->items[$offset]);
+        throw new BadMethodCallException(sprintf('Cannot remove items from an %s', __CLASS__));
     }
 
     /**
@@ -1906,6 +1712,3 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
 
     // endregion
 }
-
-// Alias class for BC. Alias is needed, instead of subclassing, so `Bag instanceof ImmutableBag` works.
-class_alias(Bag::class, ImmutableBag::class);

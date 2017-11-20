@@ -4,7 +4,6 @@ namespace Bolt\Collection;
 
 use ArrayAccess;
 use Bolt\Common\Assert;
-use Bolt\Common\Deprecated;
 use Bolt\Common\Thrower;
 use InvalidArgumentException;
 use RuntimeException;
@@ -36,7 +35,7 @@ class Arr
             return $iterable;
         }
         // Don't mean to play favorites, but want to optimize where we can.
-        if ($iterable instanceof ImmutableBag) {
+        if ($iterable instanceof Bag) {
             return $iterable->toArray();
         }
         if ($iterable instanceof Traversable) {
@@ -312,10 +311,6 @@ class Arr
                 }
 
                 return;
-            }
-
-            if ($current instanceof Bag && !($current instanceof MutableBag)) {
-                Deprecated::warn('Mutating items in a ' . Bag::class, 1.1, 'Use a ' . MutableBag::class . ' instead.');
             }
 
             if (!isset($current[$key])) {

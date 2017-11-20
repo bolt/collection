@@ -3,11 +3,11 @@
 namespace Bolt\Collection\Tests;
 
 use ArrayObject;
-use Bolt\Collection\Bag;
+use Bolt\Collection\MutableBag;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Tests for mutating methods on Bag which are deprecated, but also on MutableBag.
+ * Tests for mutating methods previously on Bag but moved to MutableBag.
  *
  * @mixin TestCase
  */
@@ -15,7 +15,7 @@ trait BagLegacyTrait
 {
     protected function createBag($items = [])
     {
-        return new Bag($items);
+        return new MutableBag($items);
     }
 
     public function testAdd()
