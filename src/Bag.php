@@ -74,7 +74,7 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
         $arr = Arr::from($collection);
 
         foreach ($arr as $key => $value) {
-            if ($value instanceof stdClass || is_iterable($value)) {
+            if ($value instanceof stdClass || \is_iterable($value)) {
                 $value = static::fromRecursive($value);
             }
             $arr[$key] = $value;
@@ -1077,7 +1077,7 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
     public function pick($keys)
     {
         // Remove accepting array as first argument once destructuring arrays is supported (PHP 5.6)
-        return $this->intersectKeys(array_flip(is_iterable($keys) ? Arr::from($keys) : func_get_args()));
+        return $this->intersectKeys(array_flip(\is_iterable($keys) ? Arr::from($keys) : func_get_args()));
     }
 
     /**
@@ -1104,7 +1104,7 @@ class Bag implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
     public function omit($keys)
     {
         // Remove accepting array as first argument once destructuring arrays is supported (PHP 5.6)
-        return $this->diffKeys(array_flip(is_iterable($keys) ? Arr::from($keys) : func_get_args()));
+        return $this->diffKeys(array_flip(\is_iterable($keys) ? Arr::from($keys) : func_get_args()));
     }
 
     /**
